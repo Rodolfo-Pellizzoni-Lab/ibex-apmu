@@ -61,6 +61,15 @@ module ibex_core #(
     input  logic [31:0] data_rdata_i,
     input  logic        data_err_i,
 
+    // Counter interface
+    output logic        counter_req_o,
+    input  logic        counter_rvalid_i,
+    output logic        counter_we_o,
+    output logic [31:0] counter_addr_o,
+    output logic [31:0] counter_wdata_o,
+    input  logic [31:0] counter_rdata_i,
+    input  logic        counter_err_i,
+
     // Interrupt inputs
     input  logic        irq_software_i,
     input  logic        irq_timer_i,
@@ -247,6 +256,10 @@ module ibex_core #(
   logic        lsu_req;
   logic [31:0] lsu_wdata;
   logic        lsu_req_done;
+
+  // mohammed
+  // Counter Control
+  logic         counter_unit_req;
 
   // stall control
   logic        id_in_ready;
@@ -588,6 +601,9 @@ module ibex_core #(
 
       .lsu_load_err_i               ( lsu_load_err             ),
       .lsu_store_err_i              ( lsu_store_err            ),
+
+      // Counter Unit
+      .counter_unit_req_o           ( counter_unit_req         ),
 
       // Interrupt Signals
       .csr_mstatus_mie_i            ( csr_mstatus_mie          ),

@@ -134,6 +134,10 @@ module ibex_id_stage #(
     input  logic                      lsu_load_err_i,
     input  logic                      lsu_store_err_i,
 
+    // mohammed
+    // Counter unit signals
+    output logic                      counter_unit_req_o,
+
     // Debug Signal
     output logic                      debug_mode_o,
     output ibex_pkg::dbg_cause_e      debug_cause_o,
@@ -487,6 +491,9 @@ module ibex_id_stage #(
       .data_we_o                       ( lsu_we               ),
       .data_type_o                     ( lsu_type             ),
       .data_sign_extension_o           ( lsu_sign_ext         ),
+
+      // Counter unit
+      .counter_unit_req_o              ( counter_unit_req_o   ),
 
       // jump/branches
       .jump_in_dec_o                   ( jump_in_dec          ),
@@ -938,6 +945,7 @@ module ibex_id_stage #(
 
     // Without Writeback Stage always stall the first cycle of a load/store.
     // Then stall until it is complete
+    
     assign stall_mem = instr_valid_i & (lsu_req_dec & (~lsu_resp_valid_i | instr_first_cycle));
 
     // No load hazards without Writeback Stage
