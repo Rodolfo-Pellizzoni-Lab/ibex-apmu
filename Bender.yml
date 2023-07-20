@@ -35,6 +35,7 @@ sources:
       - rtl/ibex_multdiv_fast.sv
       - rtl/ibex_multdiv_slow.sv
       - rtl/ibex_pmp.sv
+      - rtl/ibex_counter_unit.sv
       - rtl/ibex_wb_stage.sv
       # Level 2
       - rtl/ibex_cs_registers.sv
@@ -69,6 +70,7 @@ sources:
       - rtl/ibex_multdiv_slow.sv
       - rtl/ibex_pmp.sv
       - rtl/ibex_tracer_pkg.sv
+      - rtl/ibex_counter_unit.sv
       - rtl/ibex_wb_stage.sv
       # Level 2
       - rtl/ibex_cs_registers.sv

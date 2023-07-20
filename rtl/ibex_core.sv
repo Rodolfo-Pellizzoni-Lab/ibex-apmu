@@ -61,8 +61,9 @@ module ibex_core #(
     input  logic [31:0] data_rdata_i,
     input  logic        data_err_i,
 
-    // Counter interface
+    // Counter memory interface
     output logic        counter_req_o,
+    input  logic        counter_gnt_i,
     input  logic        counter_rvalid_i,
     output logic        counter_we_o,
     output logic [31:0] counter_addr_o,
@@ -216,6 +217,9 @@ module ibex_core #(
   logic        rf_rd_a_wb_match;
   logic        rf_rd_b_wb_match;
 
+  logic [31:0] rf_wdata_counter_unit;   // WB signals from  counter unit to WB stage
+  logic        rf_we_counter_unit;
+
   // ALU Control
   alu_op_e     alu_operator_ex;
   logic [31:0] alu_operand_a_ex;
@@ -259,7 +263,9 @@ module ibex_core #(
 
   // mohammed
   // Counter Control
+  logic         counter_unit_we;
   logic         counter_unit_req;
+  logic [31:0]  counter_unit_wdata;
 
   // stall control
   logic        id_in_ready;
@@ -267,6 +273,8 @@ module ibex_core #(
 
   logic        lsu_resp_valid;
   logic        lsu_resp_err;
+
+  logic        counter_unit_resp_valid;
 
   // Signals between instruction core interface and pipe (if and id stages)
   logic        instr_req_int;          // Id stage asserts a req to instruction core interface
@@ -550,6 +558,7 @@ module ibex_core #(
       // Stalls
       .ex_valid_i                   ( ex_valid                 ),
       .lsu_resp_valid_i             ( lsu_resp_valid           ),
+      .pcounter_resp_valid_i        ( counter_unit_resp_valid  ),
 
       .alu_operator_ex_o            ( alu_operator_ex          ),
       .alu_operand_a_ex_o           ( alu_operand_a_ex         ),
@@ -603,7 +612,9 @@ module ibex_core #(
       .lsu_store_err_i              ( lsu_store_err            ),
 
       // Counter Unit
-      .counter_unit_req_o           ( counter_unit_req         ),
+      .pcounter_req_o               ( counter_unit_req         ),
+      .pcounter_we_o                ( counter_unit_we          ),
+      .pcounter_wdata_o             ( counter_unit_wdata       ),
 
       // Interrupt Signals
       .csr_mstatus_mie_i            ( csr_mstatus_mie          ),
@@ -762,6 +773,35 @@ module ibex_core #(
       .perf_load_o           ( perf_load           ),
       .perf_store_o          ( perf_store          )
   );
+  
+  //////////////////
+  // Counter unit //
+  //////////////////
+  ibex_counter_unit  (
+    .clk_i                        ( clk                   ),
+    .rst_ni                       ( rst_ni                ),
+
+    // Counter interface
+    .counter_req_o                ( counter_req_o         ),
+    .counter_gnt_i                ( counter_gnt_i         ),
+    .counter_rvalid_i             ( counter_rvalid_i      ),
+    .counter_we_o                 ( counter_we_o          ),
+    .counter_addr_o               ( counter_addr_o        ),
+    .counter_wdata_o              ( counter_wdata_o       ),
+    .counter_rdata_i              ( counter_rdata_i       ),
+    .counter_err_i                ( counter_err_i         ),
+
+    // signals from ID stage
+    .counter_unit_req_i           ( counter_unit_req      ), 
+    .counter_unit_we_i            ( counter_unit_we       ),
+    .adder_result_ex_i            ( alu_adder_result_ex   ),
+    .counter_unit_wdata_i         ( counter_unit_wdata    ),
+    .counter_unit_resp_valid_o    ( counter_unit_resp_valid ),
+
+    // signals to WB stage
+    .counter_unit_rdata_o         ( rf_wdata_counter_unit ),
+    .counter_unit_rdata_valid_o   ( rf_we_counter_unit    )
+  );
 
   ibex_wb_stage #(
     .WritebackStage ( WritebackStage )
@@ -788,6 +828,9 @@ module ibex_core #(
 
     .rf_wdata_lsu_i                 ( rf_wdata_lsu                 ),
     .rf_we_lsu_i                    ( rf_we_lsu                    ),
+
+    .rf_wdata_counter_unit_i        ( rf_wdata_counter_unit        ),
+    .rf_we_counter_unit_i           ( rf_we_counter_unit           ),
 
     .rf_wdata_fwd_wb_o              ( rf_wdata_fwd_wb              ),
 
