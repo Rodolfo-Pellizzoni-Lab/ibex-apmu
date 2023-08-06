@@ -14,6 +14,7 @@
 `include "prim_assert.sv"
 
 module ibex_wb_stage #(
+  parameter bit PMUCore        = 1'b0,
   parameter bit WritebackStage = 1'b0
 ) (
   input  logic                     clk_i,
@@ -40,6 +41,9 @@ module ibex_wb_stage #(
   input  logic [31:0]              rf_wdata_lsu_i,
   input  logic                     rf_we_lsu_i,
 
+  input  logic [31:0]              rf_wdata_pmc_i,
+  input  logic                     rf_we_pmc_i,
+
   output logic [31:0]              rf_wdata_fwd_wb_o,
 
   output logic [4:0]               rf_waddr_wb_o,
@@ -56,8 +60,9 @@ module ibex_wb_stage #(
 
   // 0 == RF write from ID
   // 1 == RF write from LSU
-  logic [31:0] rf_wdata_wb_mux    [2];
-  logic [1:0]  rf_wdata_wb_mux_we;
+  // 2 == RF write from PMC
+  logic [31:0] rf_wdata_wb_mux    [3];
+  logic [2:0]  rf_wdata_wb_mux_we;
 
   if(WritebackStage) begin : g_writeback_stage
     logic [31:0]    rf_wdata_wb_q;
@@ -129,6 +134,9 @@ module ibex_wb_stage #(
     // rf_wdata_wb_q is used rather than rf_wdata_wb_o as the latter includes read data from memory
     // that returns too late to be used on the forwarding path.
     assign rf_wdata_fwd_wb_o = rf_wdata_wb_q;
+
+    assign rf_wdata_wb_mux[2]    = 1'b0;
+    assign rf_wdata_wb_mux_we[2] = 1'b0;
   end else begin : g_bypass_wb
     // without writeback stage just pass through register write signals
     assign rf_waddr_wb_o         = rf_waddr_id_i;
@@ -162,6 +170,14 @@ module ibex_wb_stage #(
     assign rf_write_wb_o          = 1'b0;
     assign rf_wdata_fwd_wb_o      = 32'b0;
     assign instr_done_wb_o        = 1'b0;
+
+    if (PMUCore) begin 
+      assign rf_wdata_wb_mux[2]    = rf_wdata_pmc_i;
+      assign rf_wdata_wb_mux_we[2] = rf_we_pmc_i;
+    end else begin
+      assign rf_wdata_wb_mux[2]    = 1'b0;
+      assign rf_wdata_wb_mux_we[2] = 1'b0;
+    end
   end
 
   assign rf_wdata_wb_mux[1]    = rf_wdata_lsu_i;
@@ -169,7 +185,9 @@ module ibex_wb_stage #(
 
   // RF write data can come from ID results (all RF writes that aren't because of loads will come
   // from here) or the LSU (RF writes for load data)
-  assign rf_wdata_wb_o = rf_wdata_wb_mux_we[0] ? rf_wdata_wb_mux[0] : rf_wdata_wb_mux[1];
+  assign rf_wdata_wb_o = rf_wdata_wb_mux_we[0] ? rf_wdata_wb_mux[0] : 
+                         rf_wdata_wb_mux_we[1] ? rf_wdata_wb_mux[1] : 
+                         rf_wdata_wb_mux[2];
   assign rf_we_wb_o    = |rf_wdata_wb_mux_we;
 
   `ASSERT(RFWriteFromOneSourceOnly, $onehot0(rf_wdata_wb_mux_we))

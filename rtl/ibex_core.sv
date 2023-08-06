@@ -12,7 +12,7 @@
 /**
  * Top level module of the ibex RISC-V core
  */
-module ibex_core #(
+module ibex_pmu_core #(
     parameter bit                 PMPEnable        = 1'b0,
     parameter int unsigned        PMPGranularity   = 0,
     parameter int unsigned        PMPNumRegions    = 4,
@@ -26,6 +26,7 @@ module ibex_core #(
     parameter bit                 WritebackStage   = 1'b0,
     parameter bit                 ICache           = 1'b0,
     parameter bit                 ICacheECC        = 1'b0,
+    parameter bit                 PMUCore          = 1'b1,
     parameter bit                 BranchPredictor  = 1'b0,
     parameter bit                 DbgTriggerEn     = 1'b0,
     parameter int unsigned        DbgHwBreakNum    = 1,
@@ -60,6 +61,16 @@ module ibex_core #(
     output logic [31:0] data_wdata_o,
     input  logic [31:0] data_rdata_i,
     input  logic        data_err_i,
+
+    // Data memory interface
+    output logic        counter_req_o,
+    input  logic        counter_gnt_i,
+    input  logic        counter_rvalid_i,
+    output logic        counter_we_o,
+    output logic [31:0] counter_addr_o,
+    output logic [31:0] counter_wdata_o,
+    input  logic [31:0] counter_rdata_i,
+    input  logic        counter_err_i,
 
     // Interrupt inputs
     input  logic        irq_software_i,
@@ -201,6 +212,9 @@ module ibex_core #(
   logic        rf_we_wb;
   logic        rf_we_lsu;
 
+  logic [31:0] rf_wdata_pmc;
+  logic        rf_we_pmc;
+
   logic [4:0]  rf_waddr_id;
   logic [31:0] rf_wdata_id;
   logic        rf_we_id;
@@ -248,12 +262,20 @@ module ibex_core #(
   logic [31:0] lsu_wdata;
   logic        lsu_req_done;
 
+  // Counter Memory Control
+  logic        pmc_we;
+  logic        pmc_req;
+  logic [31:0] pmc_wdata;
+
   // stall control
   logic        id_in_ready;
   logic        ex_valid;
 
   logic        lsu_resp_valid;
   logic        lsu_resp_err;
+
+  logic        pmc_resp_valid;
+  logic        pmc_resp_err;    // to do: see if this needs to be fixed?
 
   // Signals between instruction core interface and pipe (if and id stages)
   logic        instr_req_int;          // Id stage asserts a req to instruction core interface
@@ -280,6 +302,7 @@ module ibex_core #(
   logic        pmp_req_err  [PMP_NUM_CHAN];
   logic        instr_req_out;
   logic        data_req_out;
+  logic        counter_req_out;
 
   logic        csr_save_if;
   logic        csr_save_id;
@@ -495,6 +518,7 @@ module ibex_core #(
       .DataIndTiming   ( DataIndTiming   ),
       .SpecBranch      ( SpecBranch      ),
       .WritebackStage  ( WritebackStage  ),
+      .PMUCore         ( PMUCore         ),
       .BranchPredictor ( BranchPredictor )
   ) id_stage_i (
       .clk_i                        ( clk                      ),
@@ -537,6 +561,7 @@ module ibex_core #(
       // Stalls
       .ex_valid_i                   ( ex_valid                 ),
       .lsu_resp_valid_i             ( lsu_resp_valid           ),
+      .pmc_resp_valid_i             ( pmc_resp_valid           ),
 
       .alu_operator_ex_o            ( alu_operator_ex          ),
       .alu_operand_a_ex_o           ( alu_operand_a_ex         ),
@@ -588,6 +613,11 @@ module ibex_core #(
 
       .lsu_load_err_i               ( lsu_load_err             ),
       .lsu_store_err_i              ( lsu_store_err            ),
+
+      // Counter Unit
+      .pmc_req_o                    ( pmc_req                  ), 
+      .pmc_we_o                     ( pmc_we                   ), 
+      .pmc_wdata_o                  ( pmc_wdata                ), 
 
       // Interrupt Signals
       .csr_mstatus_mie_i            ( csr_mstatus_mie          ),
@@ -748,6 +778,7 @@ module ibex_core #(
   );
 
   ibex_wb_stage #(
+    .PMUCore        ( PMUCore        ),
     .WritebackStage ( WritebackStage )
   ) wb_stage_i (
     .clk_i                          ( clk                          ),
@@ -772,6 +803,9 @@ module ibex_core #(
 
     .rf_wdata_lsu_i                 ( rf_wdata_lsu                 ),
     .rf_we_lsu_i                    ( rf_we_lsu                    ),
+
+    .rf_wdata_pmc_i                 ( rf_wdata_pmc                 ),
+    .rf_we_pmc_i                    ( rf_we_pmc                    ),
 
     .rf_wdata_fwd_wb_o              ( rf_wdata_fwd_wb              ),
 
@@ -905,6 +939,49 @@ module ibex_core #(
         .we_a_i           ( rf_we_wb        )
     );
   end
+
+  /////////////////////
+  // Performance Monitoring Counter unit //
+  /////////////////////
+
+  assign counter_req_o = counter_req_out;
+
+  if(PMUCore) begin
+    ibex_pmu_counter #()  pmu_counter_i (
+        .clk_i              ( clk_i               ),
+        .rst_ni             ( rst_ni              ),
+
+        // counter interface
+        .counter_req_o      ( counter_req_out     ),
+        .counter_gnt_i      ( coutner_gnt_i       ),
+        .counter_rvalid_i   ( counter_rvalid_i    ),
+        .counter_err_i      ( counter_err_i       ),
+
+        .counter_addr_o     ( counter_addr_o      ),
+        .counter_we_o       ( counter_we_o        ),
+        .counter_wdata_o    ( counter_wdata_o     ),
+        .counter_rdata_i    ( counter_rdata_i     ),
+
+        // signals to/from ID/EX stage
+        .pmc_we_i           ( pmc_we              ),
+        .pmc_wdata_i        ( pmc_wdata           ),
+        .pmc_rdata_o        ( rf_wdata_pmc        ),
+        .pmc_rdata_valid_o  ( rf_we_pmc           ),
+        .pmc_req_i          ( pmc_req             ),
+        .adder_result_ex_i  ( alu_adder_result_ex ),
+
+        .pmc_resp_valid_o   ( pmc_resp_valid      )   
+    );
+
+  end else begin
+    assign counter_addr_o   = 1'b0;
+    assign counter_addr_o   = 1'b0;
+    assign counter_wdata_o  = 1'b0;
+
+    assign rf_wdata_pmc     = 1'b0;
+    assign rf_we_pmc        = 1'b0;
+    assign pmc_resp_valid   = 1'b0;
+  end 
 
   ///////////////////
   // Alert outputs //

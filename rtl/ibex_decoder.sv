@@ -17,6 +17,7 @@ module ibex_decoder #(
     parameter bit RV32E               = 0,
     parameter ibex_pkg::rv32m_e RV32M = ibex_pkg::RV32MFast,
     parameter ibex_pkg::rv32b_e RV32B = ibex_pkg::RV32BNone,
+    parameter bit PMUCore             = 0,
     parameter bit BranchTargetALU     = 0
 ) (
     input  logic                 clk_i,
@@ -92,6 +93,10 @@ module ibex_decoder #(
     output logic                 data_sign_extension_o, // sign extension for data read from
                                                         // memory
 
+    // PMU Counter Unit
+    output logic                 counter_req_o,         // start transaction to counter memory
+    output logic                 counter_we_o,          // write enable for counter memory
+    
     // jump/branches
     output logic                 jump_in_dec_o,         // jump is being calculated in ALU
     output logic                 branch_in_dec_o
@@ -218,6 +223,9 @@ module ibex_decoder #(
     data_sign_extension_o = 1'b0;
     data_req_o            = 1'b0;
 
+    counter_req_o         = 1'b0;
+    counter_we_o          = 1'b0;
+
     illegal_insn          = 1'b0;
     ebrk_insn_o           = 1'b0;
     mret_insn_o           = 1'b0;
@@ -326,6 +334,32 @@ module ibex_decoder #(
             illegal_insn = 1'b1;
           end
         endcase
+      end
+
+      /////////////
+      // COUNTER //
+      /////////////
+      
+      OPCODE_COUNTER: begin
+        if (PMUCore) begin
+          counter_req_o    = 1'b1;
+
+          unique case (instr[14:12])
+            // Counter Read
+            3'b000: begin
+              counter_we_o  = 1'b0;
+            end
+            // Counter Write
+            3'b001: begin
+              counter_we_o  = 1'b1;
+            end
+            default: begin
+              illegal_insn  = 1'b1;
+            end
+          endcase
+        end else begin
+          illegal_insn    = 1'b1;
+        end
       end
 
       /////////
@@ -774,6 +808,28 @@ module ibex_decoder #(
         alu_operator_o      = ALU_ADD;
         alu_op_b_mux_sel_o  = OP_B_IMM;
         imm_b_mux_sel_o     = IMM_B_I;
+      end
+
+      /////////////
+      // COUNTER //
+      /////////////
+      
+      OPCODE_COUNTER: begin
+        unique case (instr[14:12])
+          // Counter Read / Write
+          3'b000: begin
+            alu_op_a_mux_sel_o  = OP_A_REG_A;
+            alu_op_b_mux_sel_o  = OP_B_REG_B;
+            alu_operator_o      = ALU_ADD;              
+          end 
+          3'b001: begin
+            alu_op_a_mux_sel_o  = OP_A_REG_A;
+            imm_b_mux_sel_o     = IMM_B_S;
+            alu_op_b_mux_sel_o  = OP_B_IMM;
+            alu_operator_o      = ALU_ADD;
+          end
+          default: ;
+        endcase
       end
 
       /////////

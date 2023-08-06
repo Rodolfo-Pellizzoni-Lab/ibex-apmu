@@ -24,6 +24,7 @@ module ibex_id_stage #(
     parameter bit               BranchTargetALU = 0,
     parameter bit               SpecBranch      = 0,
     parameter bit               WritebackStage  = 0,
+    parameter bit               PMUCore         = 0,
     parameter bit               BranchPredictor = 0
 ) (
     input  logic                      clk_i,
@@ -65,6 +66,8 @@ module ibex_id_stage #(
     // Stalls
     input  logic                      ex_valid_i,       // EX stage has valid output
     input  logic                      lsu_resp_valid_i, // LSU has valid output, or is done
+    input  logic                      pmc_resp_valid_i, // Counter Unit has valid output, or is done
+
     // ALU
     output ibex_pkg::alu_op_e         alu_operator_ex_o,
     output logic [31:0]               alu_operand_a_ex_o,
@@ -120,6 +123,11 @@ module ibex_id_stage #(
 
     input  logic                      lsu_addr_incr_req_i,
     input  logic [31:0]               lsu_addr_last_i,
+
+    // Interface to counter unit
+    output  logic                     pmc_req_o,
+    output  logic                     pmc_we_o,
+    output  logic [31:0]              pmc_wdata_o,
 
     // Interrupt signals
     input  logic                      csr_mstatus_mie_i,
@@ -213,6 +221,7 @@ module ibex_id_stage #(
   logic        controller_run;
   logic        stall_ld_hz;
   logic        stall_mem;
+  logic        stall_pmc;
   logic        stall_multdiv;
   logic        stall_branch;
   logic        stall_jump;
@@ -272,6 +281,11 @@ module ibex_id_stage #(
   logic        lsu_sign_ext;
   logic        lsu_req, lsu_req_dec;
   logic        data_req_allowed;
+
+  // PMU Counter Unit
+  logic        pmc_we;
+  logic        pmc_req, pmc_req_dec;
+  logic        counter_req_allowed;
 
   // CSR control
   logic        csr_pipe_flush;
@@ -419,6 +433,7 @@ module ibex_id_stage #(
       .RV32E           ( RV32E           ),
       .RV32M           ( RV32M           ),
       .RV32B           ( RV32B           ),
+      .PMUCore         ( PMUCore         ),
       .BranchTargetALU ( BranchTargetALU )
   ) decoder_i (
       .clk_i                           ( clk_i                ),
@@ -487,6 +502,10 @@ module ibex_id_stage #(
       .data_we_o                       ( lsu_we               ),
       .data_type_o                     ( lsu_type             ),
       .data_sign_extension_o           ( lsu_sign_ext         ),
+
+      // PMU Counter Unit
+      .counter_req_o                   ( pmc_req_dec          ),
+      .counter_we_o                    ( pmc_we               ),
 
       // jump/branches
       .jump_in_dec_o                   ( jump_in_dec          ),
@@ -649,6 +668,20 @@ module ibex_id_stage #(
   assign multdiv_operand_a_ex_o      = rf_rdata_a_fwd;
   assign multdiv_operand_b_ex_o      = rf_rdata_b_fwd;
 
+  if (PMUCore) begin
+    assign pmc_req      = instr_executing ? counter_req_allowed & pmc_req_dec : 1'b0;
+  
+    assign pmc_req_o    = pmc_req;
+    assign pmc_we_o     = pmc_we;
+    assign pmc_wdata_o  = rf_rdata_b_fwd;
+  end else begin
+    assign pmc_req      = 0'b0;
+
+    assign pmc_req_o    = 0'b0;    
+    assign pmc_we_o     = 0'b0;
+    assign pmc_wdata_o  = 0'b0;
+  end  
+
   ////////////////////////
   // Branch set control //
   ////////////////////////
@@ -754,6 +787,12 @@ module ibex_id_stage #(
                 end
               end
             end
+            pmc_req_dec: begin
+              if (!WritebackStage) begin
+                // LSU operation
+                id_fsm_d    = MULTI_CYCLE;
+              end
+            end
             multdiv_en_dec: begin
               // MUL or DIV operation
               if (~ex_valid_i) begin
@@ -810,6 +849,7 @@ module ibex_id_stage #(
             stall_multdiv   = multdiv_en_dec;
             stall_branch    = branch_in_dec;
             stall_jump      = jump_in_dec;
+            // To do: why this?
           end
         end
 
@@ -827,7 +867,7 @@ module ibex_id_stage #(
 
   // Stall ID/EX stage for reason that relates to instruction in ID/EX
   assign stall_id = stall_ld_hz | stall_mem | stall_multdiv | stall_jump | stall_branch |
-                      stall_alu;
+                      stall_alu | stall_pmc;
 
   assign instr_done = ~stall_id & ~flush_id & instr_executing;
 
@@ -929,16 +969,19 @@ module ibex_id_stage #(
     assign stall_wb = en_wb_o & ~ready_wb_i;
 
     assign perf_dside_wait_o = instr_valid_i & ~instr_kill &
-                               (outstanding_memory_access | stall_ld_hz);
+                               (outstanding_memory_access | stall_ld_hz);                                
   end else begin : gen_no_stall_mem
 
-    assign multicycle_done = lsu_req_dec ? lsu_resp_valid_i : ex_valid_i;
+    assign multicycle_done = lsu_req_dec ? lsu_resp_valid_i : 
+                             pmc_req_dec ? pmc_resp_valid_i : 
+                             ex_valid_i;
 
     assign data_req_allowed = instr_first_cycle;
 
     // Without Writeback Stage always stall the first cycle of a load/store.
     // Then stall until it is complete
     assign stall_mem = instr_valid_i & (lsu_req_dec & (~lsu_resp_valid_i | instr_first_cycle));
+
 
     // No load hazards without Writeback Stage
     assign stall_ld_hz   = 1'b0;
@@ -982,6 +1025,23 @@ module ibex_id_stage #(
     assign perf_dside_wait_o = instr_executing & lsu_req_dec & ~lsu_resp_valid_i;
 
     assign instr_id_done_o = instr_done;
+  end
+
+  if (WritebackStage) begin:           gen_stall_pmc
+    // With Writeback Stage, the counter unit will not work.
+    assign counter_req_allowed  = 1'b0;
+    assign stall_pmc            = 1'b0;
+  end else begin:                     no_gen_stall_pmc
+    if (PMUCore) begin
+      assign counter_req_allowed = instr_first_cycle;
+
+      // Without Writeback Stage always stall the first cycle of a counter read/write.
+      // Then stall until it is complete
+      assign stall_pmc = instr_valid_i & (pmc_req_dec & (~pmc_resp_valid_i | instr_first_cycle));
+    end else begin
+      assign counter_req_allowed = 1'b0;
+      assign stall_pmc = 1'b0;
+    end
   end
 
   // Signal which instructions to count as retired in minstret, all traps along with ebrk and
