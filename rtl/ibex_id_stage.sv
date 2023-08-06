@@ -65,7 +65,6 @@ module ibex_id_stage #(
     // Stalls
     input  logic                      ex_valid_i,       // EX stage has valid output
     input  logic                      lsu_resp_valid_i, // LSU has valid output, or is done
-    input  logic                      pcounter_resp_valid_i, // Counter Unit has valid output, or is done
     // ALU
     output ibex_pkg::alu_op_e         alu_operator_ex_o,
     output logic [31:0]               alu_operand_a_ex_o,
@@ -134,12 +133,6 @@ module ibex_id_stage #(
 
     input  logic                      lsu_load_err_i,
     input  logic                      lsu_store_err_i,
-
-    // mohammed
-    // Counter unit signals
-    output logic                      pcounter_req_o,
-    output logic                      pcounter_we_o,
-    output logic [31:0]               pcounter_wdata_o,
 
     // Debug Signal
     output logic                      debug_mode_o,
@@ -220,7 +213,6 @@ module ibex_id_stage #(
   logic        controller_run;
   logic        stall_ld_hz;
   logic        stall_mem;
-  logic        stall_pcounter;
   logic        stall_multdiv;
   logic        stall_branch;
   logic        stall_jump;
@@ -280,11 +272,6 @@ module ibex_id_stage #(
   logic        lsu_sign_ext;
   logic        lsu_req, lsu_req_dec;
   logic        data_req_allowed;
-
-  // Counter Memory Control
-  logic        pcounter_we;
-  logic        pcounter_req, pcounter_req_dec;
-  logic        pcounter_req_allowed;
 
   // CSR control
   logic        csr_pipe_flush;
@@ -501,10 +488,6 @@ module ibex_id_stage #(
       .data_type_o                     ( lsu_type             ),
       .data_sign_extension_o           ( lsu_sign_ext         ),
 
-      // Counter unit
-      .pcounter_req_o                  ( pcounter_req_dec     ),
-      .pcounter_we_o                   ( pcounter_we          ), /// ???
-
       // jump/branches
       .jump_in_dec_o                   ( jump_in_dec          ),
       .branch_in_dec_o                 ( branch_in_dec        )
@@ -640,7 +623,6 @@ module ibex_id_stage #(
   assign multdiv_en_dec   = mult_en_dec | div_en_dec;
 
   assign lsu_req         = instr_executing ? data_req_allowed & lsu_req_dec  : 1'b0;
-  assign pcounter_req    = instr_executing ? pcounter_req_allowed & pcounter_req_dec  : 1'b0;
   assign mult_en_id      = instr_executing ? mult_en_dec                     : 1'b0;
   assign div_en_id       = instr_executing ? div_en_dec                      : 1'b0;
 
@@ -649,10 +631,6 @@ module ibex_id_stage #(
   assign lsu_type_o              = lsu_type;
   assign lsu_sign_ext_o          = lsu_sign_ext;
   assign lsu_wdata_o             = rf_rdata_b_fwd;
-
-  assign pcounter_req_o          = pcounter_req;
-  assign pcounter_we_o           = pcounter_we;
-  assign pcounter_wdata_o        = rf_rdata_b_fwd;
   // csr_op_en_o is set when CSR access should actually happen.
   // csv_access_o is set when CSR access instruction is present and is used to compute whether a CSR
   // access is illegal. A combinational loop would be created if csr_op_en_o was used along (as
@@ -776,9 +754,6 @@ module ibex_id_stage #(
                 end
               end
             end
-            pcounter_req_dec: begin
-              id_fsm_d    = MULTI_CYCLE;
-            end
             multdiv_en_dec: begin
               // MUL or DIV operation
               if (~ex_valid_i) begin
@@ -852,7 +827,7 @@ module ibex_id_stage #(
 
   // Stall ID/EX stage for reason that relates to instruction in ID/EX
   assign stall_id = stall_ld_hz | stall_mem | stall_multdiv | stall_jump | stall_branch |
-                      stall_pcounter | stall_alu;
+                      stall_alu;
 
   assign instr_done = ~stall_id & ~flush_id & instr_executing;
 
@@ -957,17 +932,13 @@ module ibex_id_stage #(
                                (outstanding_memory_access | stall_ld_hz);
   end else begin : gen_no_stall_mem
 
-    assign multicycle_done = lsu_req_dec ? lsu_resp_valid_i : 
-                             pcounter_req_dec ? pcounter_resp_valid_i : ex_valid_i;
+    assign multicycle_done = lsu_req_dec ? lsu_resp_valid_i : ex_valid_i;
 
     assign data_req_allowed = instr_first_cycle;
-    assign pcounter_req_allowed = instr_first_cycle;
 
     // Without Writeback Stage always stall the first cycle of a load/store.
     // Then stall until it is complete
-    
     assign stall_mem = instr_valid_i & (lsu_req_dec & (~lsu_resp_valid_i | instr_first_cycle));
-    assign stall_pcounter = instr_valid_i & (pcounter_req_dec & (~pcounter_resp_valid_i | instr_first_cycle));
 
     // No load hazards without Writeback Stage
     assign stall_ld_hz   = 1'b0;

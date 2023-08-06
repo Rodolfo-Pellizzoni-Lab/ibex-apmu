@@ -37,7 +37,6 @@ typedef enum integer {
 
 typedef enum logic [6:0] {
   OPCODE_LOAD     = 7'h03,
-  OPCODE_COUNTER  = 7'h07,
   OPCODE_MISC_MEM = 7'h0f,
   OPCODE_OP_IMM   = 7'h13,
   OPCODE_AUIPC    = 7'h17,

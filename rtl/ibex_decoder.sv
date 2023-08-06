@@ -92,10 +92,6 @@ module ibex_decoder #(
     output logic                 data_sign_extension_o, // sign extension for data read from
                                                         // memory
 
-    // Counter unit
-    output logic                 pcounter_req_o,
-    output logic                 pcounter_we_o,         // write enable
-
     // jump/branches
     output logic                 jump_in_dec_o,         // jump is being calculated in ALU
     output logic                 branch_in_dec_o
@@ -229,9 +225,6 @@ module ibex_decoder #(
     ecall_insn_o          = 1'b0;
     wfi_insn_o            = 1'b0;
 
-    pcounter_req_o        = 1'b0;
-    pcounter_we_o         = 1'b0;
-
     opcode                = opcode_e'(instr[6:0]);
 
     unique case (opcode)
@@ -332,24 +325,6 @@ module ibex_decoder #(
           default: begin
             illegal_insn = 1'b1;
           end
-        endcase
-      end
-
-      /////////////
-      // Counter //
-      /////////////
-      OPCODE_COUNTER: begin
-        unique case(instr[14:12])
-          // Counter read
-          3'b000: begin
-            pcounter_req_o      = 1'b1;
-          end
-          // Counter write
-          3'b001: begin
-            pcounter_req_o      = 1'b1;
-            pcounter_we_o       = 1'b1;
-          end
-          default: illegal_insn = 1'b1;
         endcase
       end
 
@@ -799,33 +774,6 @@ module ibex_decoder #(
         alu_operator_o      = ALU_ADD;
         alu_op_b_mux_sel_o  = OP_B_IMM;
         imm_b_mux_sel_o     = IMM_B_I;
-      end
-
-      /////////////
-      // Counter //
-      /////////////
-
-      OPCODE_COUNTER: begin
-        unique case(instr[14:12])
-          // Counter read
-          3'b000: begin
-            alu_op_a_mux_sel_o   = OP_A_REG_A;
-
-            // mohammed -- check if there is a way to default this in a better way
-            alu_operator_o      = ALU_ADD;
-            alu_op_b_mux_sel_o  = OP_B_IMM;
-            imm_b_mux_sel_o     = IMM_B_I;
-          end
-          // Counter write
-          3'b001: begin
-            alu_op_a_mux_sel_o   = OP_A_REG_A;
-
-            // mohammed -- check if there is a way to default this in a better way
-            alu_operator_o      = ALU_ADD;
-            imm_b_mux_sel_o     = IMM_B_S;
-            alu_op_b_mux_sel_o  = OP_B_IMM;
-          end
-        endcase
       end
 
       /////////
