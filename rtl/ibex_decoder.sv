@@ -95,6 +95,7 @@ module ibex_decoder #(
 
     // PMU Counter Unit
     output logic                 counter_req_o,         // start transaction to counter memory
+    output ibex_pkg::pmc_op_e    counter_op_o,          // counter operation
     output logic                 counter_we_o,          // write enable for counter memory
     
     // jump/branches
@@ -224,6 +225,7 @@ module ibex_decoder #(
     data_req_o            = 1'b0;
 
     counter_req_o         = 1'b0;
+    counter_op_o          = PMC_IDLE;
     counter_we_o          = 1'b0;
 
     illegal_insn          = 1'b0;
@@ -347,11 +349,20 @@ module ibex_decoder #(
           unique case (instr[14:12])
             // Counter Read
             3'b000: begin
+              counter_op_o  = PMC_REQ;
               counter_we_o  = 1'b0;
             end
             // Counter Write
             3'b001: begin
+              counter_op_o  = PMC_REQ;
               counter_we_o  = 1'b1;
+            end
+            3'b010: begin
+              unique case (instr[31:25]) 
+                7'b000_0000: begin
+                  counter_op_o  = PMC_WFP;
+                end
+              endcase
             end
             default: begin
               illegal_insn  = 1'b1;

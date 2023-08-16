@@ -50,6 +50,12 @@ typedef enum logic [6:0] {
   OPCODE_SYSTEM   = 7'h73
 } opcode_e;
 
+typedef enum logic [1:0] {
+  PMC_IDLE,
+  PMC_REQ,
+  PMC_WFP,
+  PMC_WFO  
+} pmc_op_e;
 
 ////////////////////
 // ALU operations //

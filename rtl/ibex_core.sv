@@ -63,7 +63,7 @@ module ibex_pmu_core #(
     input  logic        data_err_i,
 
     // Data memory interface
-    output logic        counter_req_o,
+    output ibex_pkg::pmc_op_e  counter_op_o,
     input  logic        counter_gnt_i,
     input  logic        counter_rvalid_i,
     output logic        counter_we_o,
@@ -263,10 +263,12 @@ module ibex_pmu_core #(
   logic        lsu_req_done;
 
   // Counter Memory Control
-  logic        pmc_we;
   logic        pmc_req;
+  pmc_op_e     pmc_op;
+  logic        pmc_we;  
+  
   logic [31:0] pmc_wdata;
-
+  
   // stall control
   logic        id_in_ready;
   logic        ex_valid;
@@ -302,7 +304,7 @@ module ibex_pmu_core #(
   logic        pmp_req_err  [PMP_NUM_CHAN];
   logic        instr_req_out;
   logic        data_req_out;
-  logic        counter_req_out;
+  pmc_op_e     counter_op_out;
 
   logic        csr_save_if;
   logic        csr_save_id;
@@ -616,6 +618,7 @@ module ibex_pmu_core #(
 
       // Counter Unit
       .pmc_req_o                    ( pmc_req                  ), 
+      .pmc_op_o                     ( pmc_op                   ),
       .pmc_we_o                     ( pmc_we                   ), 
       .pmc_wdata_o                  ( pmc_wdata                ), 
 
@@ -940,11 +943,11 @@ module ibex_pmu_core #(
     );
   end
 
-  /////////////////////
+  /////////////////////////////////////////
   // Performance Monitoring Counter unit //
-  /////////////////////
+  /////////////////////////////////////////
 
-  assign counter_req_o = counter_req_out;
+  assign counter_op_o = counter_op_out;
 
   if(PMUCore) begin
     ibex_pmu_counter #()  pmu_counter_i (
@@ -952,8 +955,8 @@ module ibex_pmu_core #(
         .rst_ni             ( rst_ni              ),
 
         // counter interface
-        .counter_req_o      ( counter_req_out     ),
-        .counter_gnt_i      ( coutner_gnt_i       ),
+        .counter_op_o       ( counter_op_out      ),
+        .counter_gnt_i      ( counter_gnt_i       ),
         .counter_rvalid_i   ( counter_rvalid_i    ),
         .counter_err_i      ( counter_err_i       ),
 
@@ -968,6 +971,7 @@ module ibex_pmu_core #(
         .pmc_rdata_o        ( rf_wdata_pmc        ),
         .pmc_rdata_valid_o  ( rf_we_pmc           ),
         .pmc_req_i          ( pmc_req             ),
+        .pmc_op_i           ( pmc_op             ),
         .adder_result_ex_i  ( alu_adder_result_ex ),
 
         .pmc_resp_valid_o   ( pmc_resp_valid      )   

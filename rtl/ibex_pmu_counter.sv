@@ -1,32 +1,34 @@
 module ibex_pmu_counter (
-    input   logic        clk_i,
-    input   logic        rst_ni,
+    input   logic                   clk_i,
+    input   logic                   rst_ni,
 
     // counter interface 
-    output  logic        counter_req_o,
-    input   logic        counter_gnt_i,
-    input   logic        counter_rvalid_i,
-    input   logic        counter_err_i,
+    output  ibex_pkg::pmc_op_e      counter_op_o,
+    input   logic                   counter_gnt_i,
+    input   logic                   counter_rvalid_i,
+    input   logic                   counter_err_i,
     
-    output  logic [31:0] counter_addr_o,
-    output  logic [31:0] counter_we_o,
-    output  logic [31:0] counter_wdata_o,
-    input   logic [31:0] counter_rdata_i,
+    output  logic [31:0]            counter_addr_o,
+    output  logic [31:0]            counter_we_o,
+    output  logic [31:0]            counter_wdata_o,
+    input   logic [31:0]            counter_rdata_i,
 
     // signals to/from ID/EX stage
-    input   logic        pmc_we_i,          // write enable
-    input   logic [31:0] pmc_wdata_i,       // data to write to counter
+    input   logic                   pmc_we_i,          // write enable
+    input   logic [31:0]            pmc_wdata_i,       // data to write to counter
 
-    output  logic [31:0] pmc_rdata_o,       // requested data
-    output  logic        pmc_rdata_valid_o,
-    input   logic        pmc_req_i,         // counter request
-    input   logic [31:0] adder_result_ex_i, // address computed in ALU
+    output  logic [31:0]            pmc_rdata_o,       // requested data
+    output  logic                   pmc_rdata_valid_o,
+    input   logic                   pmc_req_i,         // counter request
+    input   ibex_pkg::pmc_op_e      pmc_op_i,          // counter operation
+    input   logic [31:0]            adder_result_ex_i, // address computed in ALU
 
-    output  logic        pmc_resp_valid_o     // Counter Unit has response from transaction
+    output  logic                   pmc_resp_valid_o     // Counter Unit has response from transaction
 );
+    import ibex_pkg::*;
 
     typedef enum logic [2:0]  {
-    IDLE, PMC_REQ
+        FSM_IDLE, FSM_RW_REQ, FSM_WFP
     } pmc_fsm_e;
 
     pmc_fsm_e pmc_fsm_cs, pmc_fsm_ns;
@@ -52,33 +54,50 @@ module ibex_pmu_counter (
     always_comb begin
         pmc_fsm_ns      = pmc_fsm_cs;
 
-        counter_req_o   = 1'b0;
+        counter_op_o    = PMC_IDLE;
         ctrl_update     = 1'b0;
 
         unique case (pmc_fsm_cs)
 
-            IDLE: begin
-                if (pmc_req_i) begin
-                    counter_req_o   = 1'b1;
+            FSM_IDLE: begin
+                if (counter_gnt_i) begin
+                    unique case (pmc_op_i)
+                        PMC_IDLE: ;
 
-                    ctrl_update     = 1'b1;
-                    pmc_fsm_ns      = PMC_REQ;
+                        PMC_REQ: begin
+                            counter_op_o    = PMC_REQ;
+
+                            ctrl_update     = 1'b1;
+                            pmc_fsm_ns      = FSM_RW_REQ;
+                        end
+
+                        PMC_WFP: begin
+                            pmc_fsm_ns      = FSM_WFP;
+                        end
+                    endcase
                 end
             end
 
-            PMC_REQ: begin
+            FSM_RW_REQ: begin
                 if (counter_rvalid_i) begin
-                    pmc_fsm_ns      = IDLE;
+                    pmc_fsm_ns          = FSM_IDLE;
                 end
             end
 
+            FSM_WFP: begin
+                counter_op_o            = PMC_WFP;
+                if (counter_rvalid_i) begin
+                    pmc_fsm_ns          = FSM_IDLE;
+                    counter_op_o        = PMC_IDLE;
+                end
+            end
         endcase
     end
 
 
     always_ff @(posedge clk_i) begin
         if (!rst_ni) begin
-            pmc_fsm_cs <= IDLE;
+            pmc_fsm_cs <= FSM_IDLE;
         end else begin
             pmc_fsm_cs <= pmc_fsm_ns;
         end
@@ -89,12 +108,36 @@ module ibex_pmu_counter (
     /////////////
 
     // To the decoder stage, this signal un-stalls the core
-    assign pmc_resp_valid_o     = (pmc_fsm_cs == PMC_REQ) &
-                                  counter_rvalid_i;
+    always_comb begin
+        pmc_resp_valid_o    = 1'b0;
+        unique case (pmc_fsm_cs)
+            FSM_RW_REQ, FSM_WFP: begin
+                if (counter_rvalid_i) begin
+                    pmc_resp_valid_o    = 1'b1;
+                end
+            end
+            default: ;
+        endcase
+    end
 
-    assign pmc_rdata_valid_o    = (pmc_fsm_cs == PMC_REQ) & 
-                                   counter_rvalid_i & 
-                                   ~counter_we_q;
+    always_comb begin
+        pmc_rdata_valid_o    = 1'b0;
+        unique case (pmc_fsm_cs)
+            // WB to register file only on reads.
+            FSM_RW_REQ: begin
+                if (counter_rvalid_i & ~counter_we_q) begin
+                    pmc_rdata_valid_o    = 1'b1;
+                end
+            end
+            // WB to register file on WFP.
+            FSM_WFP: begin
+                if (counter_rvalid_i) begin
+                    pmc_rdata_valid_o    = 1'b1;
+                end
+            end
+            default: ;
+        endcase
+    end
 
     // output to register file
     assign pmc_rdata_o          = counter_rdata_i;

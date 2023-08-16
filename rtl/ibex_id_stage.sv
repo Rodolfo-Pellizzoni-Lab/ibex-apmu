@@ -126,7 +126,9 @@ module ibex_id_stage #(
 
     // Interface to counter unit
     output  logic                     pmc_req_o,
+    output  ibex_pkg::pmc_op_e        pmc_op_o,
     output  logic                     pmc_we_o,
+    
     output  logic [31:0]              pmc_wdata_o,
 
     // Interrupt signals
@@ -283,6 +285,7 @@ module ibex_id_stage #(
   logic        data_req_allowed;
 
   // PMU Counter Unit
+  pmc_op_e     pmc_op;
   logic        pmc_we;
   logic        pmc_req, pmc_req_dec;
   logic        counter_req_allowed;
@@ -505,6 +508,7 @@ module ibex_id_stage #(
 
       // PMU Counter Unit
       .counter_req_o                   ( pmc_req_dec          ),
+      .counter_op_o                    ( pmc_op               ),
       .counter_we_o                    ( pmc_we               ),
 
       // jump/branches
@@ -672,14 +676,18 @@ module ibex_id_stage #(
     assign pmc_req      = instr_executing ? counter_req_allowed & pmc_req_dec : 1'b0;
   
     assign pmc_req_o    = pmc_req;
+    assign pmc_op_o     = pmc_op;
     assign pmc_we_o     = pmc_we;
     assign pmc_wdata_o  = rf_rdata_b_fwd;
   end else begin
-    assign pmc_req      = 0'b0;
+    assign pmc_req      = 1'b0;
+    assign pmc_we       = 1'b0;
+    assign pmc_op       = PMC_IDLE;
 
-    assign pmc_req_o    = 0'b0;    
-    assign pmc_we_o     = 0'b0;
-    assign pmc_wdata_o  = 0'b0;
+    assign pmc_req_o    = 1'b0;
+    assign pmc_op_o     = PMC_IDLE;     
+    assign pmc_we_o     = 1'b0;
+    assign pmc_wdata_o  = 1'b0;
   end  
 
   ////////////////////////
