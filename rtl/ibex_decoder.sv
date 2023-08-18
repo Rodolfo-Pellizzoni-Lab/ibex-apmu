@@ -362,6 +362,9 @@ module ibex_decoder #(
                 7'b000_0000: begin
                   counter_op_o  = PMC_WFP;
                 end
+                7'b000_0001: begin
+                  counter_op_o  = PMC_WFO;
+                end
               endcase
             end
             default: begin
@@ -839,6 +842,15 @@ module ibex_decoder #(
             alu_op_b_mux_sel_o  = OP_B_IMM;
             alu_operator_o      = ALU_ADD;
           end
+          3'b010: begin
+              unique case (instr[31:25]) 
+                7'b000_0000, 7'b000_0001: begin
+                  alu_op_a_mux_sel_o  = OP_A_REG_A;
+                  alu_op_b_mux_sel_o  = OP_B_REG_B;
+                  alu_operator_o      = ALU_ADD;
+                end
+              endcase
+            end
           default: ;
         endcase
       end

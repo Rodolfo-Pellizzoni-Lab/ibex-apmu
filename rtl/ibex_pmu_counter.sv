@@ -19,7 +19,7 @@ module ibex_pmu_counter (
 
     output  logic [31:0]            pmc_rdata_o,       // requested data
     output  logic                   pmc_rdata_valid_o,
-    input   logic                   pmc_req_i,         // counter request
+    input   logic                   pmc_req_i,         // counter request, is 0 if the core is stalled due to branch mispredictions, etc.
     input   ibex_pkg::pmc_op_e      pmc_op_i,          // counter operation
     input   logic [31:0]            adder_result_ex_i, // address computed in ALU
 
@@ -28,7 +28,7 @@ module ibex_pmu_counter (
     import ibex_pkg::*;
 
     typedef enum logic [2:0]  {
-        FSM_IDLE, FSM_RW_REQ, FSM_WFP
+        FSM_IDLE, FSM_RW_REQ, FSM_WFX
     } pmc_fsm_e;
 
     pmc_fsm_e pmc_fsm_cs, pmc_fsm_ns;
@@ -58,21 +58,20 @@ module ibex_pmu_counter (
         ctrl_update     = 1'b0;
 
         unique case (pmc_fsm_cs)
-
             FSM_IDLE: begin
-                if (counter_gnt_i) begin
+                // Only execute a new counter operation if the request is valid and
+                // the counter interface is ready (grant signal).
+                if (counter_gnt_i && pmc_req_i) begin
+                    counter_op_o    = pmc_op_i;
                     unique case (pmc_op_i)
                         PMC_IDLE: ;
-
-                        PMC_REQ: begin
-                            counter_op_o    = PMC_REQ;
-
+                        PMC_REQ: begin                    
                             ctrl_update     = 1'b1;
                             pmc_fsm_ns      = FSM_RW_REQ;
                         end
 
-                        PMC_WFP: begin
-                            pmc_fsm_ns      = FSM_WFP;
+                        PMC_WFP, PMC_WFO: begin
+                            pmc_fsm_ns      = FSM_WFX;
                         end
                     endcase
                 end
@@ -80,17 +79,19 @@ module ibex_pmu_counter (
 
             FSM_RW_REQ: begin
                 if (counter_rvalid_i) begin
-                    pmc_fsm_ns          = FSM_IDLE;
+                    pmc_fsm_ns              = FSM_IDLE;
                 end
             end
 
-            FSM_WFP: begin
-                counter_op_o            = PMC_WFP;
+            FSM_WFX: begin
+                counter_op_o                = pmc_op_i;
                 if (counter_rvalid_i) begin
-                    pmc_fsm_ns          = FSM_IDLE;
-                    counter_op_o        = PMC_IDLE;
+                    pmc_fsm_ns              = FSM_IDLE;
+                    counter_op_o            = PMC_IDLE;
                 end
             end
+
+            default: ;
         endcase
     end
 
@@ -111,7 +112,7 @@ module ibex_pmu_counter (
     always_comb begin
         pmc_resp_valid_o    = 1'b0;
         unique case (pmc_fsm_cs)
-            FSM_RW_REQ, FSM_WFP: begin
+            FSM_RW_REQ, FSM_WFX: begin
                 if (counter_rvalid_i) begin
                     pmc_resp_valid_o    = 1'b1;
                 end
@@ -129,8 +130,8 @@ module ibex_pmu_counter (
                     pmc_rdata_valid_o    = 1'b1;
                 end
             end
-            // WB to register file on WFP.
-            FSM_WFP: begin
+            // WB to register file on WFP / WFO.
+            FSM_WFX: begin
                 if (counter_rvalid_i) begin
                     pmc_rdata_valid_o    = 1'b1;
                 end
