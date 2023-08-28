@@ -103,6 +103,7 @@ module ibex_controller #(
     // stall & flush signals
     input  logic                  stall_id_i,
     input  logic                  stall_wb_i,
+    input  logic                  stall_pmu_i,
     output logic                  flush_id_o,
     input  logic                  ready_wb_i,
 
@@ -828,9 +829,13 @@ module ibex_controller #(
 
       default: begin
         instr_req_o = 1'b0;
-        ctrl_fsm_ns = RESET;
+        ctrl_fsm_ns = FIRST_FETCH;
       end
     endcase
+
+    if (stall_pmu_i) begin
+      ctrl_fsm_ns = RESET;
+    end
   end
 
   assign flush_id_o = flush_id;

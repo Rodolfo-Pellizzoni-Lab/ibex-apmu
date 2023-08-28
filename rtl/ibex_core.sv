@@ -43,6 +43,9 @@ module ibex_pmu_core #(
     input  logic [31:0] hart_id_i,
     input  logic [31:0] boot_addr_i,
 
+    // External stall signal
+    input  logic        stall_pmu_i,
+
     // Instruction memory interface
     output logic        instr_req_o,
     input  logic        instr_gnt_i,
@@ -564,6 +567,7 @@ module ibex_pmu_core #(
       .ex_valid_i                   ( ex_valid                 ),
       .lsu_resp_valid_i             ( lsu_resp_valid           ),
       .pmc_resp_valid_i             ( pmc_resp_valid           ),
+      .stall_pmu_i                  ( stall_pmu_i              ),
 
       .alu_operator_ex_o            ( alu_operator_ex          ),
       .alu_operand_a_ex_o           ( alu_operand_a_ex         ),
@@ -620,7 +624,7 @@ module ibex_pmu_core #(
       .pmc_req_o                    ( pmc_req                  ), 
       .pmc_op_o                     ( pmc_op                   ),
       .pmc_we_o                     ( pmc_we                   ), 
-      .pmc_wdata_o                  ( pmc_wdata                ), 
+      .pmc_wdata_o                  ( pmc_wdata                ),
 
       // Interrupt Signals
       .csr_mstatus_mie_i            ( csr_mstatus_mie          ),

@@ -67,6 +67,8 @@ module ibex_id_stage #(
     input  logic                      ex_valid_i,       // EX stage has valid output
     input  logic                      lsu_resp_valid_i, // LSU has valid output, or is done
     input  logic                      pmc_resp_valid_i, // Counter Unit has valid output, or is done
+    // External stall signal
+    input  logic                      stall_pmu_i,
 
     // ALU
     output ibex_pkg::alu_op_e         alu_operator_ex_o,
@@ -637,6 +639,7 @@ module ibex_id_stage #(
       .stall_wb_i                     ( stall_wb                ),
       .flush_id_o                     ( flush_id                ),
       .ready_wb_i                     ( ready_wb_i              ),
+      .stall_pmu_i                    ( stall_pmu_i             ),
 
       // Performance Counters
       .perf_jump_o                    ( perf_jump_o             ),
@@ -875,7 +878,7 @@ module ibex_id_stage #(
 
   // Stall ID/EX stage for reason that relates to instruction in ID/EX
   assign stall_id = stall_ld_hz | stall_mem | stall_multdiv | stall_jump | stall_branch |
-                      stall_alu | stall_pmc;
+                      stall_alu | stall_pmc | stall_pmu_i;
 
   assign instr_done = ~stall_id & ~flush_id & instr_executing;
 
