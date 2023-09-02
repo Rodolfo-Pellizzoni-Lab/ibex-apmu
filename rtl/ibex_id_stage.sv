@@ -231,6 +231,7 @@ module ibex_id_stage #(
   logic        stall_jump;
   logic        stall_id;
   logic        stall_wb;
+  logic        stall_pmu_only;  
   logic        flush_id;
   logic        multicycle_done;
 
@@ -639,7 +640,7 @@ module ibex_id_stage #(
       .stall_wb_i                     ( stall_wb                ),
       .flush_id_o                     ( flush_id                ),
       .ready_wb_i                     ( ready_wb_i              ),
-      .stall_pmu_i                    ( stall_pmu_i             ),
+      .stall_pmu_i                    ( stall_pmu_only          ),
 
       // Performance Counters
       .perf_jump_o                    ( perf_jump_o             ),
@@ -876,9 +877,14 @@ module ibex_id_stage #(
 
   `ASSERT(StallIDIfMulticycle, (id_fsm_q == FIRST_CYCLE) & (id_fsm_d == MULTI_CYCLE) |-> stall_id)
 
+  // If the core is already halted due to memory, multdiv, etc. then the `stall_pmu_i` has to wait until the core un-stalls.
+  // Because the RESET state of the controller does not un-stall the core automatically.
+  assign stall_pmu_only = !(stall_ld_hz | stall_mem | stall_multdiv | stall_jump | stall_branch |
+                            stall_alu | stall_pmc) && stall_pmu_i;
+
   // Stall ID/EX stage for reason that relates to instruction in ID/EX
   assign stall_id = stall_ld_hz | stall_mem | stall_multdiv | stall_jump | stall_branch |
-                      stall_alu | stall_pmc | stall_pmu_i;
+                      stall_alu | stall_pmc | stall_pmu_only;
 
   assign instr_done = ~stall_id & ~flush_id & instr_executing;
 
