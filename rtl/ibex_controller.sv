@@ -118,7 +118,7 @@ module ibex_controller #(
   // FSM state encoding
   typedef enum logic [3:0] {
     RESET, BOOT_SET, WAIT_SLEEP, SLEEP, FIRST_FETCH, DECODE, FLUSH,
-    IRQ_TAKEN, DBG_TAKEN_IF, DBG_TAKEN_ID
+    IRQ_TAKEN, DBG_TAKEN_IF, DBG_TAKEN_ID, PMU_STALL
   } ctrl_fsm_e;
 
   ctrl_fsm_e ctrl_fsm_cs, ctrl_fsm_ns;
@@ -495,6 +495,11 @@ module ibex_controller #(
           ctrl_fsm_ns = DECODE;
         end
 
+        if (stall_pmu_i) begin
+          ctrl_fsm_ns = PMU_STALL;
+          halt_if     = 1'b1;
+        end
+
         // handle interrupts
         if (handle_irq) begin
           // We are handling an interrupt. Set halt_if to tell IF not to give
@@ -511,7 +516,7 @@ module ibex_controller #(
           // Halt IF only for now, ID will be flushed in DBG_TAKEN_IF as the
           // ID state is needed for correct debug mode entry
           halt_if     = 1'b1;
-        end
+        end    
       end
 
       DECODE: begin
@@ -575,7 +580,7 @@ module ibex_controller #(
         // If entering debug mode or handling an IRQ the core needs to wait
         // until the current instruction has finished executing. Stall IF
         // during that time.
-        if ((enter_debug_mode || handle_irq) && stall) begin
+        if ((enter_debug_mode || handle_irq || stall_pmu_i) && stall) begin
           halt_if = 1'b1;
         end
 
@@ -594,6 +599,9 @@ module ibex_controller #(
             // to the handler, but don't set flush_id: we must allow this
             // instruction to complete (since it might have outstanding loads
             // or stores).
+            halt_if     = 1'b1;
+          end else if (stall_pmu_i) begin
+            ctrl_fsm_ns = PMU_STALL;
             halt_if     = 1'b1;
           end
         end
@@ -638,6 +646,13 @@ module ibex_controller #(
         end
 
         ctrl_fsm_ns = DECODE;
+      end
+
+      PMU_STALL: begin
+        halt_if = 1'b1;
+        if (!stall_pmu_i) begin
+          ctrl_fsm_ns = BOOT_SET;
+        end
       end
 
       DBG_TAKEN_IF: begin
@@ -832,10 +847,6 @@ module ibex_controller #(
         ctrl_fsm_ns = FIRST_FETCH;
       end
     endcase
-
-    if (stall_pmu_i) begin
-      ctrl_fsm_ns = RESET;
-    end
   end
 
   assign flush_id_o = flush_id;
@@ -895,7 +906,7 @@ module ibex_controller #(
   // Selectors must be known/valid.
   `ASSERT(IbexCtrlStateValid, ctrl_fsm_cs inside {
       RESET, BOOT_SET, WAIT_SLEEP, SLEEP, FIRST_FETCH, DECODE, FLUSH,
-      IRQ_TAKEN, DBG_TAKEN_IF, DBG_TAKEN_ID})
+      IRQ_TAKEN, DBG_TAKEN_IF, DBG_TAKEN_ID, PMU_STALL})
 
   // The speculative branch signal should be set whenever the actual branch signal is set
   `ASSERT(IbexSpecImpliesSetPC, pc_set_o |-> pc_set_spec_o)

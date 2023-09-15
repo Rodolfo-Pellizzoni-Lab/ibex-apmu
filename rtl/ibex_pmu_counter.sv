@@ -9,7 +9,7 @@ module ibex_pmu_counter (
     input   logic                   counter_err_i,
     
     output  logic [31:0]            counter_addr_o,
-    output  logic [31:0]            counter_we_o,
+    output  logic                   counter_we_o,
     output  logic [31:0]            counter_wdata_o,
     input   logic [31:0]            counter_rdata_i,
 
