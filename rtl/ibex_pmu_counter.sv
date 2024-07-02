@@ -1,4 +1,4 @@
-module ibex_pmu_counter (
+module apmu_ibex_pmu_counter (
     input   logic                   clk_i,
     input   logic                   rst_ni,
 
@@ -25,7 +25,7 @@ module ibex_pmu_counter (
 
     output  logic                   pmc_resp_valid_o     // Counter Unit has response from transaction
 );
-    import ibex_pkg::*;
+    import apmu_ibex_pkg::*;
 
     typedef enum logic [2:0]  {
         FSM_IDLE, FSM_RW_REQ, FSM_WFX

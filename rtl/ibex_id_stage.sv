@@ -16,7 +16,7 @@
 
 `include "prim_assert.sv"
 
-module ibex_id_stage #(
+module apmu_ibex_id_stage #(
     parameter bit               RV32E           = 0,
     parameter ibex_pkg::rv32m_e RV32M           = ibex_pkg::RV32MFast,
     parameter ibex_pkg::rv32b_e RV32B           = ibex_pkg::RV32BNone,
@@ -198,7 +198,7 @@ module ibex_id_stage #(
     output logic                      instr_id_done_o
 );
 
-  import ibex_pkg::*;
+  import apmu_ibex_pkg::*;
 
   // Decoder/Controller, ID stage internal signals
   logic        illegal_insn_dec;
@@ -434,7 +434,7 @@ module ibex_id_stage #(
   // Decoder //
   /////////////
 
-  ibex_decoder #(
+  apmu_ibex_decoder #(
       .RV32E           ( RV32E           ),
       .RV32M           ( RV32M           ),
       .RV32B           ( RV32B           ),
@@ -550,7 +550,7 @@ module ibex_id_stage #(
 
   assign illegal_insn_o = instr_valid_i & (illegal_insn_dec | illegal_csr_insn_i);
 
-  ibex_controller #(
+  apmu_ibex_controller #(
     .WritebackStage  ( WritebackStage  ),
     .BranchPredictor ( BranchPredictor )
   ) controller_i (

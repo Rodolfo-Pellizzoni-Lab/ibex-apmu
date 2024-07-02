@@ -14,7 +14,7 @@
 
 `include "prim_assert.sv"
 
-module ibex_multdiv_fast #(
+module apmu_ibex_multdiv_fast #(
     parameter ibex_pkg::rv32m_e RV32M = ibex_pkg::RV32MFast
   ) (
     input  logic             clk_i,
@@ -45,7 +45,7 @@ module ibex_multdiv_fast #(
     output logic             valid_o
 );
 
-  import ibex_pkg::*;
+  import apmu_ibex_pkg::*;
 
   // Both multiplier variants
   logic signed [34:0] mac_res_signed;

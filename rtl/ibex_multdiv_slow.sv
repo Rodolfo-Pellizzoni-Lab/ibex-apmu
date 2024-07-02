@@ -11,7 +11,7 @@
 
 `include "prim_assert.sv"
 
-module ibex_multdiv_slow
+module apmu_ibex_multdiv_slow
 (
     input  logic             clk_i,
     input  logic             rst_ni,
@@ -42,7 +42,7 @@ module ibex_multdiv_slow
     output logic             valid_o
 );
 
-  import ibex_pkg::*;
+  import apmu_ibex_pkg::*;
 
   typedef enum logic [2:0] {
     MD_IDLE, MD_ABS_A, MD_ABS_B, MD_COMP, MD_LAST, MD_CHANGE_SIGN, MD_FINISH

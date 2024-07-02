@@ -127,7 +127,7 @@ module ibex_pmu_core #(
     output logic        core_sleep_o
 );
 
-  import ibex_pkg::*;
+  import apmu_ibex_pkg::*;
 
   localparam int unsigned PMP_NUM_CHAN      = 2;
   localparam bit          DataIndTiming     = SecureIbex;
@@ -433,7 +433,7 @@ module ibex_pmu_core #(
   // IF stage //
   //////////////
 
-  ibex_if_stage #(
+  apmu_ibex_if_stage #(
       .DmHaltAddr        ( DmHaltAddr        ),
       .DmExceptionAddr   ( DmExceptionAddr   ),
       .DummyInstructions ( DummyInstructions ),
@@ -515,7 +515,7 @@ module ibex_pmu_core #(
   // ID stage //
   //////////////
 
-  ibex_id_stage #(
+  apmu_ibex_id_stage #(
       .RV32E           ( RV32E           ),
       .RV32M           ( RV32M           ),
       .RV32B           ( RV32B           ),
@@ -686,7 +686,7 @@ module ibex_pmu_core #(
   // for RVFI only
   assign unused_illegal_insn_id = illegal_insn_id;
 
-  ibex_ex_block #(
+  apmu_ibex_ex_block #(
       .RV32M                    ( RV32M                    ),
       .RV32B                    ( RV32B                    ),
       .BranchTargetALU          ( BranchTargetALU          )
@@ -738,7 +738,7 @@ module ibex_pmu_core #(
   assign data_req_o   = data_req_out & ~pmp_req_err[PMP_D];
   assign lsu_resp_err = lsu_load_err | lsu_store_err;
 
-  ibex_load_store_unit load_store_unit_i (
+  apmu_ibex_load_store_unit load_store_unit_i (
       .clk_i                 ( clk                 ),
       .rst_ni                ( rst_ni              ),
 
@@ -784,7 +784,7 @@ module ibex_pmu_core #(
       .perf_store_o          ( perf_store          )
   );
 
-  ibex_wb_stage #(
+  apmu_ibex_wb_stage #(
     .PMUCore        ( PMUCore        ),
     .WritebackStage ( WritebackStage )
   ) wb_stage_i (
@@ -886,7 +886,7 @@ module ibex_pmu_core #(
   end
 
   if (RegFile == RegFileFF) begin : gen_regfile_ff
-    ibex_register_file_ff #(
+    apmu_ibex_register_file_ff #(
         .RV32E             ( RV32E             ),
         .DataWidth         ( RegFileDataWidth  ),
         .DummyInstructions ( DummyInstructions )
@@ -906,7 +906,7 @@ module ibex_pmu_core #(
         .we_a_i           ( rf_we_wb        )
     );
   end else if (RegFile == RegFileFPGA) begin : gen_regfile_fpga
-    ibex_register_file_fpga #(
+    apmu_ibex_register_file_fpga #(
         .RV32E             ( RV32E             ),
         .DataWidth         ( RegFileDataWidth  ),
         .DummyInstructions ( DummyInstructions )
@@ -926,7 +926,7 @@ module ibex_pmu_core #(
         .we_a_i           ( rf_we_wb        )
     );
   end else if (RegFile == RegFileLatch) begin : gen_regfile_latch
-    ibex_register_file_latch #(
+    apmu_ibex_register_file_latch #(
         .RV32E             ( RV32E             ),
         .DataWidth         ( RegFileDataWidth  ),
         .DummyInstructions ( DummyInstructions )
@@ -954,7 +954,7 @@ module ibex_pmu_core #(
   assign counter_op_o = counter_op_out;
 
   if(PMUCore) begin
-    ibex_pmu_counter #()  pmu_counter_i (
+    apmu_ibex_pmu_counter #()  pmu_counter_i (
         .clk_i              ( clk_i               ),
         .rst_ni             ( rst_ni              ),
 
@@ -1061,7 +1061,7 @@ module ibex_pmu_core #(
   assign csr_wdata  = alu_operand_a_ex;
   assign csr_addr   = csr_num_e'(csr_access ? alu_operand_b_ex[11:0] : 12'b0);
 
-  ibex_cs_registers #(
+  apmu_ibex_cs_registers #(
       .DbgTriggerEn      ( DbgTriggerEn      ),
       .DbgHwBreakNum     ( DbgHwBreakNum     ),
       .DataIndTiming     ( DataIndTiming     ),
@@ -1186,7 +1186,7 @@ module ibex_pmu_core #(
     assign pmp_req_type[PMP_D] = data_we_o ? PMP_ACC_WRITE : PMP_ACC_READ;
     assign pmp_priv_lvl[PMP_D] = priv_mode_lsu;
 
-    ibex_pmp #(
+    apmu_ibex_pmp #(
         .PMPGranularity        ( PMPGranularity ),
         .PMPNumChan            ( PMP_NUM_CHAN   ),
         .PMPNumRegions         ( PMPNumRegions  )

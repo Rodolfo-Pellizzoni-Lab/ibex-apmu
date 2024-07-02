@@ -12,7 +12,7 @@
 
 `include "prim_assert.sv"
 
-module ibex_cs_registers #(
+module apmu_ibex_cs_registers #(
     parameter bit               DbgTriggerEn      = 0,
     parameter int unsigned      DbgHwBreakNum     = 1,
     parameter bit               DataIndTiming     = 1'b0,
@@ -122,7 +122,7 @@ module ibex_cs_registers #(
     input  logic [15:0]          external_perf_i         // external performance counters
 );
 
-  import ibex_pkg::*;
+  import apmu_ibex_pkg::*;
 
   localparam int unsigned RV32BEnabled = (RV32B == RV32BNone) ? 0 : 1;
   localparam int unsigned RV32MEnabled = (RV32M == RV32MNone) ? 0 : 1;
@@ -780,7 +780,7 @@ module ibex_cs_registers #(
                                           mpp:  PRIV_LVL_U,
                                           mprv: 1'b0,
                                           tw:   1'b0};
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      ($bits(status_t)),
     .ShadowCopy (ShadowCSR),
     .ResetValue ({MSTATUS_RST_VAL})
@@ -794,7 +794,7 @@ module ibex_cs_registers #(
   );
 
   // MEPC
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      (32),
     .ShadowCopy (1'b0),
     .ResetValue ('0)
@@ -812,7 +812,7 @@ module ibex_cs_registers #(
   assign mie_d.irq_timer    = csr_wdata_int[CSR_MTIX_BIT];
   assign mie_d.irq_external = csr_wdata_int[CSR_MEIX_BIT];
   assign mie_d.irq_fast     = csr_wdata_int[CSR_MFIX_BIT_HIGH:CSR_MFIX_BIT_LOW];
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      ($bits(irqs_t)),
     .ShadowCopy (1'b0),
     .ResetValue ('0)
@@ -826,7 +826,7 @@ module ibex_cs_registers #(
   );
 
   // MSCRATCH
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      (32),
     .ShadowCopy (1'b0),
     .ResetValue ('0)
@@ -840,7 +840,7 @@ module ibex_cs_registers #(
   );
 
   // MCAUSE
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      (6),
     .ShadowCopy (1'b0),
     .ResetValue ('0)
@@ -854,7 +854,7 @@ module ibex_cs_registers #(
   );
 
   // MTVAL
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      (32),
     .ShadowCopy (1'b0),
     .ResetValue ('0)
@@ -868,7 +868,7 @@ module ibex_cs_registers #(
   );
 
   // MTVEC
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      (32),
     .ShadowCopy (ShadowCSR),
     .ResetValue (32'd1)
@@ -888,7 +888,7 @@ module ibex_cs_registers #(
       prv:       PRIV_LVL_M,
       default:   '0
   };
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      ($bits(dcsr_t)),
     .ShadowCopy (1'b0),
     .ResetValue ({DCSR_RESET_VAL})
@@ -902,7 +902,7 @@ module ibex_cs_registers #(
   );
 
   // DEPC
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      (32),
     .ShadowCopy (1'b0),
     .ResetValue ('0)
@@ -916,7 +916,7 @@ module ibex_cs_registers #(
   );
 
   // DSCRATCH0
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      (32),
     .ShadowCopy (1'b0),
     .ResetValue ('0)
@@ -930,7 +930,7 @@ module ibex_cs_registers #(
   );
 
   // DSCRATCH1
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      (32),
     .ShadowCopy (1'b0),
     .ResetValue ('0)
@@ -948,7 +948,7 @@ module ibex_cs_registers #(
       mpie: 1'b1,
       mpp:  PRIV_LVL_U
   };
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      ($bits(status_stk_t)),
     .ShadowCopy (1'b0),
     .ResetValue ({MSTACK_RESET_VAL})
@@ -962,7 +962,7 @@ module ibex_cs_registers #(
   );
 
   // MSTACK_EPC
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      (32),
     .ShadowCopy (1'b0),
     .ResetValue ('0)
@@ -976,7 +976,7 @@ module ibex_cs_registers #(
   );
 
   // MSTACK_CAUSE
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      (6),
     .ShadowCopy (1'b0),
     .ResetValue ('0)
@@ -1070,7 +1070,7 @@ module ibex_cs_registers #(
       assign pmp_cfg_wdata[i].write = &csr_wdata_int[(i%4)*PMP_CFG_W+:2];
       assign pmp_cfg_wdata[i].read  = csr_wdata_int[(i%4)*PMP_CFG_W];
 
-      ibex_csr #(
+      apmu_ibex_csr #(
         .Width      ($bits(pmp_cfg_t)),
         .ShadowCopy (ShadowCSR),
         .ResetValue ('0)
@@ -1095,7 +1095,7 @@ module ibex_cs_registers #(
                                 (csr_addr == (CSR_OFF_PMP_ADDR + i[11:0]));
       end
 
-      ibex_csr #(
+      apmu_ibex_csr #(
         .Width      (PMPAddrWidth),
         .ShadowCopy (ShadowCSR),
         .ResetValue ('0)
@@ -1190,7 +1190,7 @@ module ibex_cs_registers #(
   end
 
   // mcycle
-  ibex_counter #(
+  apmu_ibex_counter #(
     .CounterWidth(64)
   ) mcycle_counter_i (
     .clk_i(clk_i),
@@ -1203,7 +1203,7 @@ module ibex_cs_registers #(
   );
 
   // minstret
-  ibex_counter #(
+  apmu_ibex_counter #(
     .CounterWidth(64)
   ) minstret_counter_i (
     .clk_i(clk_i),
@@ -1223,7 +1223,7 @@ module ibex_cs_registers #(
 
   for (genvar cnt=0; cnt < 29; cnt++) begin : gen_cntrs
     if (cnt < MHPMCounterNum) begin : gen_imp
-      ibex_counter #(
+      apmu_ibex_counter #(
         .CounterWidth(MHPMCounterWidth)
       ) mcounters_variable_i (
         .clk_i(clk_i),
@@ -1298,7 +1298,7 @@ module ibex_cs_registers #(
     assign tmatch_value_d   = csr_wdata_int[31:0];
 
     // Registers
-    ibex_csr #(
+    apmu_ibex_csr #(
       .Width      (DbgHwNumLen),
       .ShadowCopy (1'b0),
       .ResetValue ('0)
@@ -1312,7 +1312,7 @@ module ibex_cs_registers #(
     );
 
     for (genvar i = 0; i < DbgHwBreakNum; i++) begin : g_dbg_tmatch_reg
-      ibex_csr #(
+      apmu_ibex_csr #(
         .Width      (1),
         .ShadowCopy (1'b0),
         .ResetValue ('0)
@@ -1325,7 +1325,7 @@ module ibex_cs_registers #(
         .rd_error_o ()
     );
 
-      ibex_csr #(
+      apmu_ibex_csr #(
         .Width      (32),
         .ShadowCopy (1'b0),
         .ResetValue ('0)
@@ -1441,7 +1441,7 @@ module ibex_cs_registers #(
 
   assign icache_enable_o = cpuctrl_q.icache_enable;
 
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      ($bits(cpu_ctrl_t)),
     .ShadowCopy (ShadowCSR),
     .ResetValue ('0)
@@ -1461,7 +1461,7 @@ module ibex_cs_registers #(
   ////////////
 
   // MIEX
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      (32),
     .ShadowCopy (1'b0),
     .ResetValue ({32{1'b1}})
@@ -1475,7 +1475,7 @@ module ibex_cs_registers #(
   );
 
   // MTVECX
-  ibex_csr #(
+  apmu_ibex_csr #(
     .Width      (32),
     .ShadowCopy (ShadowCSR),
     .ResetValue (32'd1)

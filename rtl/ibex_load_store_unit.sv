@@ -13,7 +13,7 @@
 
 `include "prim_assert.sv"
 
-module ibex_load_store_unit
+module apmu_ibex_load_store_unit
 (
     input  logic         clk_i,
     input  logic         rst_ni,

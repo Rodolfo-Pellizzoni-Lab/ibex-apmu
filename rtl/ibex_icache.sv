@@ -10,7 +10,7 @@
 
 `include "prim_assert.sv"
 
-module ibex_icache #(
+module apmu_ibex_icache #(
   parameter bit          BranchPredictor = 1'b0,
   // Cache arrangement parameters
   parameter int unsigned BusWidth        = 32,

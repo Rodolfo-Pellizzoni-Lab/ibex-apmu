@@ -78,7 +78,7 @@ module ibex_core_tracing #(
 
 );
 
-  import ibex_pkg::*;
+  import apmu_ibex_pkg::*;
 
   // ibex_tracer relies on the signals from the RISC-V Formal Interface
   `ifndef RVFI
@@ -109,7 +109,7 @@ module ibex_core_tracing #(
   logic [31:0] rvfi_mem_rdata;
   logic [31:0] rvfi_mem_wdata;
 
-  ibex_core #(
+  ibex_pmu_core #(
     .PMPEnable        ( PMPEnable        ),
     .PMPGranularity   ( PMPGranularity   ),
     .PMPNumRegions    ( PMPNumRegions    ),

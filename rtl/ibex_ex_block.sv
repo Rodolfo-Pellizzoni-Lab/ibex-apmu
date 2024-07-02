@@ -8,7 +8,7 @@
  *
  * Execution block: Hosts ALU and MUL/DIV unit
  */
-module ibex_ex_block #(
+module apmu_ibex_ex_block #(
     parameter ibex_pkg::rv32m_e RV32M           = ibex_pkg::RV32MFast,
     parameter ibex_pkg::rv32b_e RV32B           = ibex_pkg::RV32BNone,
     parameter bit               BranchTargetALU = 0
@@ -53,7 +53,7 @@ module ibex_ex_block #(
     output logic                  ex_valid_o             // EX has valid output
 );
 
-  import ibex_pkg::*;
+  import apmu_ibex_pkg::*;
 
   logic [31:0] alu_result, multdiv_result;
 
@@ -113,7 +113,7 @@ module ibex_ex_block #(
   // ALU //
   /////////
 
-  ibex_alu #(
+  apmu_ibex_alu #(
     .RV32B(RV32B)
   ) alu_i                  (
       .operator_i          ( alu_operator_i          ),
@@ -138,7 +138,7 @@ module ibex_ex_block #(
   ////////////////
 
   if (RV32M == RV32MSlow) begin : gen_multdiv_slow
-    ibex_multdiv_slow multdiv_i (
+    apmu_ibex_multdiv_slow multdiv_i (
         .clk_i              ( clk_i                 ),
         .rst_ni             ( rst_ni                ),
         .mult_en_i          ( mult_en_i             ),
@@ -163,7 +163,7 @@ module ibex_ex_block #(
         .multdiv_result_o   ( multdiv_result        )
     );
   end else if (RV32M == RV32MFast || RV32M == RV32MSingleCycle) begin : gen_multdiv_fast
-    ibex_multdiv_fast #     (
+    apmu_ibex_multdiv_fast #     (
         .RV32M ( RV32M )
     ) multdiv_i             (
         .clk_i              ( clk_i                 ),

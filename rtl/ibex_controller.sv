@@ -9,7 +9,7 @@
 
 `include "prim_assert.sv"
 
-module ibex_controller #(
+module apmu_ibex_controller #(
     parameter bit WritebackStage  = 0,
     parameter bit BranchPredictor = 0
  ) (
@@ -113,7 +113,7 @@ module ibex_controller #(
     output logic                  perf_tbranch_o           // we are executing a taken branch
                                                            // instruction
 );
-  import ibex_pkg::*;
+  import apmu_ibex_pkg::*;
 
   // FSM state encoding
   typedef enum logic [3:0] {

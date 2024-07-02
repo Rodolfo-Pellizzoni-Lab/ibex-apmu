@@ -17,7 +17,7 @@
 
 `include "prim_assert.sv"
 
-module ibex_branch_predict (
+module apmu_ibex_branch_predict (
   input  logic clk_i,
   input  logic rst_ni,
 
@@ -30,7 +30,7 @@ module ibex_branch_predict (
   output logic        predict_branch_taken_o,
   output logic [31:0] predict_branch_pc_o
 );
-  import ibex_pkg::*;
+  import apmu_ibex_pkg::*;
 
   logic [31:0] imm_j_type;
   logic [31:0] imm_b_type;

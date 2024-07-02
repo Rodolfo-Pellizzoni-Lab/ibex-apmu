@@ -8,7 +8,7 @@
  * Provides pseudo-randomly inserted fake instructions for secure code obfuscation
  */
 
-module ibex_dummy_instr (
+module apmu_ibex_dummy_instr (
     // Clock and reset
     input  logic        clk_i,
     input  logic        rst_ni,

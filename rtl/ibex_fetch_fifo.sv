@@ -12,7 +12,7 @@
 
 `include "prim_assert.sv"
 
-module ibex_fetch_fifo #(
+module apmu_ibex_fetch_fifo #(
   parameter int unsigned NUM_REQS = 2
 ) (
     input  logic                clk_i,

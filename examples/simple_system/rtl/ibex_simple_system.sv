@@ -161,7 +161,7 @@ module ibex_simple_system (
     .cfg_device_addr_mask
   );
 
-  ibex_core_tracing #(
+  apmu_ibex_core_tracing #(
       .SecureIbex      ( SecureIbex      ),
       .PMPEnable       ( PMPEnable       ),
       .PMPGranularity  ( PMPGranularity  ),

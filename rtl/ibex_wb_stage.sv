@@ -13,7 +13,7 @@
 
 `include "prim_assert.sv"
 
-module ibex_wb_stage #(
+module apmu_ibex_wb_stage #(
   parameter bit PMUCore        = 1'b0,
   parameter bit WritebackStage = 1'b0
 ) (
@@ -56,7 +56,7 @@ module ibex_wb_stage #(
   output logic                     instr_done_wb_o
 );
 
-  import ibex_pkg::*;
+  import apmu_ibex_pkg::*;
 
   // 0 == RF write from ID
   // 1 == RF write from LSU

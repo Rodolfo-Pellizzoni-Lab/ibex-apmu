@@ -6,7 +6,7 @@
 /**
  * Package with constants used by Ibex
  */
-package ibex_pkg;
+package apmu_ibex_pkg;
 
 /////////////////////
 // Parameter Enums //

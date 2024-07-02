@@ -13,7 +13,7 @@
 
 `include "prim_assert.sv"
 
-module ibex_decoder #(
+module apmu_ibex_decoder #(
     parameter bit RV32E               = 0,
     parameter ibex_pkg::rv32m_e RV32M = ibex_pkg::RV32MFast,
     parameter ibex_pkg::rv32b_e RV32B = ibex_pkg::RV32BNone,
@@ -103,7 +103,7 @@ module ibex_decoder #(
     output logic                 branch_in_dec_o
 );
 
-  import ibex_pkg::*;
+  import apmu_ibex_pkg::*;
 
   logic        illegal_insn;
   logic        illegal_reg_rv32e;

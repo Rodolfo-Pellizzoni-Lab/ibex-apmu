@@ -12,7 +12,7 @@
 
 `include "prim_assert.sv"
 
-module ibex_if_stage #(
+module apmu_ibex_if_stage #(
     parameter int unsigned DmHaltAddr        = 32'h1A110800,
     parameter int unsigned DmExceptionAddr   = 32'h1A110808,
     parameter bit          DummyInstructions = 1'b0,
@@ -94,7 +94,7 @@ module ibex_if_stage #(
     output logic                  if_busy_o                 // IF stage is busy fetching instr
 );
 
-  import ibex_pkg::*;
+  import apmu_ibex_pkg::*;
 
   logic              instr_valid_id_d, instr_valid_id_q;
   logic              instr_new_id_d, instr_new_id_q;
@@ -188,7 +188,7 @@ module ibex_if_stage #(
 
   if (ICache) begin : gen_icache
     // Full I-Cache option
-    ibex_icache #(
+    apmu_ibex_icache #(
       .BranchPredictor (BranchPredictor),
       .ICacheECC       (ICacheECC)
     ) icache_i (
@@ -224,7 +224,7 @@ module ibex_if_stage #(
     );
   end else begin : gen_prefetch_buffer
     // prefetch buffer, caches a fixed number of instructions
-    ibex_prefetch_buffer #(
+    apmu_ibex_prefetch_buffer #(
       .BranchPredictor (BranchPredictor)
     ) prefetch_buffer_i (
         .clk_i               ( clk_i                      ),
@@ -278,7 +278,7 @@ module ibex_if_stage #(
   logic        illegal_c_insn;
   logic        instr_is_compressed;
 
-  ibex_compressed_decoder compressed_decoder_i (
+  apmu_ibex_compressed_decoder compressed_decoder_i (
       .clk_i           ( clk_i                    ),
       .rst_ni          ( rst_ni                   ),
       .valid_i         ( fetch_valid & ~fetch_err ),
@@ -293,7 +293,7 @@ module ibex_if_stage #(
     logic        insert_dummy_instr;
     logic [31:0] dummy_instr_data;
 
-    ibex_dummy_instr dummy_instr_i (
+    apmu_ibex_dummy_instr dummy_instr_i (
       .clk_i                 ( clk_i                 ),
       .rst_ni                ( rst_ni                ),
       .dummy_instr_en_i      ( dummy_instr_en_i      ),
@@ -456,7 +456,7 @@ module ibex_if_stage #(
       end
     end
 
-    ibex_branch_predict branch_predict_i (
+    apmu_ibex_branch_predict branch_predict_i (
       .clk_i                  ( clk_i                    ),
       .rst_ni                 ( rst_ni                   ),
       .fetch_rdata_i          ( fetch_rdata              ),

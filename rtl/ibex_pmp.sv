@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-module ibex_pmp #(
+module apmu_ibex_pmp #(
     // Granularity of NAPOT access,
     // 0 = No restriction, 1 = 8 byte, 2 = 16 byte, 3 = 32 byte, etc.
     parameter int unsigned PMPGranularity = 0,
@@ -27,7 +27,7 @@ module ibex_pmp #(
 
 );
 
-  import ibex_pkg::*;
+  import apmu_ibex_pkg::*;
 
   // Access Checking Signals
   logic [33:0]                                region_start_addr [PMPNumRegions];
