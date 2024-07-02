@@ -79,7 +79,7 @@ module apmu_ibex_tracer (
   logic [ 1:0] unused_rvfi_mode = rvfi_mode;
   logic [ 1:0] unused_rvfi_ixl = rvfi_ixl;
 
-  import ibex_tracer_pkg::*;
+  import apmu_ibex_tracer_pkg::*;
 
   int          file_handle;
   string       file_name;
