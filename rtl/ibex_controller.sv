@@ -47,12 +47,12 @@ module apmu_ibex_controller #(
     output logic                  instr_req_o,             // start fetching instructions
     output logic                  pc_set_o,                // jump to address set by pc_mux
     output logic                  pc_set_spec_o,           // speculative branch
-    output ibex_pkg::pc_sel_e     pc_mux_o,                // IF stage fetch address selector
+    output apmu_ibex_pkg::pc_sel_e     pc_mux_o,                // IF stage fetch address selector
                                                            // (boot, normal, exception...)
     output logic                  nt_branch_mispredict_o,  // Not-taken branch in ID/EX was
                                                            // mispredicted (predicted taken)
-    output ibex_pkg::exc_pc_sel_e exc_pc_mux_o,            // IF stage selector for exception PC
-    output ibex_pkg::exc_cause_e  exc_cause_o,             // for IF stage, CSRs
+    output apmu_ibex_pkg::exc_pc_sel_e exc_pc_mux_o,            // IF stage selector for exception PC
+    output apmu_ibex_pkg::exc_cause_e  exc_cause_o,             // for IF stage, CSRs
 
     // LSU
     input  logic [31:0]           lsu_addr_last_i,         // for mtval
@@ -71,7 +71,7 @@ module apmu_ibex_controller #(
     // interrupt signals
     input  logic                  csr_mstatus_mie_i,       // M-mode interrupt enable bit
     input  logic                  irq_pending_i,           // interrupt request pending
-    input  ibex_pkg::irqs_t       irqs_i,                  // interrupt requests qualified with
+    input  apmu_ibex_pkg::irqs_t       irqs_i,                  // interrupt requests qualified with
                                                            // mie CSR
     input  logic                  irq_nm_i,                // non-maskeable interrupt
     output logic                  nmi_mode_o,              // core executing NMI handler
@@ -82,7 +82,7 @@ module apmu_ibex_controller #(
 
     // debug signals
     input  logic                  debug_req_i,
-    output ibex_pkg::dbg_cause_e  debug_cause_o,
+    output apmu_ibex_pkg::dbg_cause_e  debug_cause_o,
     output logic                  debug_csr_save_o,
     output logic                  debug_mode_o,
     input  logic                  debug_single_step_i,
@@ -97,7 +97,7 @@ module apmu_ibex_controller #(
     output logic                  csr_restore_dret_id_o,
     output logic                  csr_save_cause_o,
     output logic [31:0]           csr_mtval_o,
-    input  ibex_pkg::priv_lvl_e   priv_mode_i,
+    input  apmu_ibex_pkg::priv_lvl_e   priv_mode_i,
     input  logic                  csr_mstatus_tw_i,
 
     // stall & flush signals

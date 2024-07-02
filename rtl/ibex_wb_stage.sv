@@ -21,7 +21,7 @@ module apmu_ibex_wb_stage #(
   input  logic                     rst_ni,
 
   input  logic                     en_wb_i,
-  input  ibex_pkg::wb_instr_type_e instr_type_wb_i,
+  input  apmu_ibex_pkg::wb_instr_type_e instr_type_wb_i,
   input  logic [31:0]              pc_id_i,
   input  logic                     instr_is_compressed_id_i,
   input  logic                     instr_perf_count_id_i,

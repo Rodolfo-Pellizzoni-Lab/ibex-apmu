@@ -16,13 +16,13 @@ module apmu_ibex_pmp #(
     input  logic                    rst_ni,
 
     // Interface to CSRs
-    input  ibex_pkg::pmp_cfg_t      csr_pmp_cfg_i  [PMPNumRegions],
+    input  apmu_ibex_pkg::pmp_cfg_t      csr_pmp_cfg_i  [PMPNumRegions],
     input  logic [33:0]             csr_pmp_addr_i [PMPNumRegions],
 
-    input  ibex_pkg::priv_lvl_e     priv_mode_i    [PMPNumChan],
+    input  apmu_ibex_pkg::priv_lvl_e     priv_mode_i    [PMPNumChan],
     // Access checking channels
     input  logic [33:0]             pmp_req_addr_i [PMPNumChan],
-    input  ibex_pkg::pmp_req_e      pmp_req_type_i [PMPNumChan],
+    input  apmu_ibex_pkg::pmp_req_e      pmp_req_type_i [PMPNumChan],
     output logic                    pmp_req_err_o  [PMPNumChan]
 
 );

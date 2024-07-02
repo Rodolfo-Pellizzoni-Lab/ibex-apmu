@@ -19,9 +19,9 @@ module ibex_pmu_core #(
     parameter int unsigned        MHPMCounterNum   = 0,
     parameter int unsigned        MHPMCounterWidth = 40,
     parameter bit                 RV32E            = 1'b0,
-    parameter ibex_pkg::rv32m_e   RV32M            = ibex_pkg::RV32MFast,
-    parameter ibex_pkg::rv32b_e   RV32B            = ibex_pkg::RV32BNone,
-    parameter ibex_pkg::regfile_e RegFile          = ibex_pkg::RegFileFF,
+    parameter apmu_ibex_pkg::rv32m_e   RV32M            = apmu_ibex_pkg::RV32MFast,
+    parameter apmu_ibex_pkg::rv32b_e   RV32B            = apmu_ibex_pkg::RV32BNone,
+    parameter apmu_ibex_pkg::regfile_e RegFile          = apmu_ibex_pkg::RegFileFF,
     parameter bit                 BranchTargetALU  = 1'b0,
     parameter bit                 WritebackStage   = 1'b0,
     parameter bit                 ICache           = 1'b0,
@@ -66,7 +66,7 @@ module ibex_pmu_core #(
     input  logic        data_err_i,
 
     // Data memory interface
-    output ibex_pkg::pmc_op_e  counter_op_o,
+    output apmu_ibex_pkg::pmc_op_e  counter_op_o,
     input  logic        counter_gnt_i,
     input  logic        counter_rvalid_i,
     output logic        counter_we_o,

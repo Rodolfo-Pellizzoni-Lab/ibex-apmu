@@ -15,7 +15,7 @@
 `include "prim_assert.sv"
 
 module apmu_ibex_multdiv_fast #(
-    parameter ibex_pkg::rv32m_e RV32M = ibex_pkg::RV32MFast
+    parameter apmu_ibex_pkg::rv32m_e RV32M = apmu_ibex_pkg::RV32MFast
   ) (
     input  logic             clk_i,
     input  logic             rst_ni,
@@ -23,7 +23,7 @@ module apmu_ibex_multdiv_fast #(
     input  logic             div_en_i,   // dynamic enable signal, for FSM control
     input  logic             mult_sel_i, // static decoder output, for data muxes
     input  logic             div_sel_i,  // static decoder output, for data muxes
-    input  ibex_pkg::md_op_e operator_i,
+    input  apmu_ibex_pkg::md_op_e operator_i,
     input  logic  [1:0]      signed_mode_i,
     input  logic [31:0]      op_a_i,
     input  logic [31:0]      op_b_i,

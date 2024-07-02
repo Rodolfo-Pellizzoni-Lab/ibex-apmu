@@ -3,7 +3,7 @@ module apmu_ibex_pmu_counter (
     input   logic                   rst_ni,
 
     // counter interface 
-    output  ibex_pkg::pmc_op_e      counter_op_o,
+    output  apmu_ibex_pkg::pmc_op_e      counter_op_o,
     input   logic                   counter_gnt_i,
     input   logic                   counter_rvalid_i,
     input   logic                   counter_err_i,
@@ -20,7 +20,7 @@ module apmu_ibex_pmu_counter (
     output  logic [31:0]            pmc_rdata_o,       // requested data
     output  logic                   pmc_rdata_valid_o,
     input   logic                   pmc_req_i,         // counter request, is 0 if the core is stalled due to branch mispredictions, etc.
-    input   ibex_pkg::pmc_op_e      pmc_op_i,          // counter operation
+    input   apmu_ibex_pkg::pmc_op_e      pmc_op_i,          // counter operation
     input   logic [31:0]            adder_result_ex_i, // address computed in ALU
 
     output  logic                   pmc_resp_valid_o     // Counter Unit has response from transaction

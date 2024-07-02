@@ -15,8 +15,8 @@
 
 module apmu_ibex_decoder #(
     parameter bit RV32E               = 0,
-    parameter ibex_pkg::rv32m_e RV32M = ibex_pkg::RV32MFast,
-    parameter ibex_pkg::rv32b_e RV32B = ibex_pkg::RV32BNone,
+    parameter apmu_ibex_pkg::rv32m_e RV32M = apmu_ibex_pkg::RV32MFast,
+    parameter apmu_ibex_pkg::rv32b_e RV32B = apmu_ibex_pkg::RV32BNone,
     parameter bit PMUCore             = 0,
     parameter bit BranchTargetALU     = 0
 ) (
@@ -44,10 +44,10 @@ module apmu_ibex_decoder #(
     input  logic                 illegal_c_insn_i,      // compressed instruction decode failed
 
     // immediates
-    output ibex_pkg::imm_a_sel_e  imm_a_mux_sel_o,       // immediate selection for operand a
-    output ibex_pkg::imm_b_sel_e  imm_b_mux_sel_o,       // immediate selection for operand b
-    output ibex_pkg::op_a_sel_e   bt_a_mux_sel_o,        // branch target selection operand a
-    output ibex_pkg::imm_b_sel_e  bt_b_mux_sel_o,        // branch target selection operand b
+    output apmu_ibex_pkg::imm_a_sel_e  imm_a_mux_sel_o,       // immediate selection for operand a
+    output apmu_ibex_pkg::imm_b_sel_e  imm_b_mux_sel_o,       // immediate selection for operand b
+    output apmu_ibex_pkg::op_a_sel_e   bt_a_mux_sel_o,        // branch target selection operand a
+    output apmu_ibex_pkg::imm_b_sel_e  bt_b_mux_sel_o,        // branch target selection operand b
     output logic [31:0]           imm_i_type_o,
     output logic [31:0]           imm_s_type_o,
     output logic [31:0]           imm_b_type_o,
@@ -56,7 +56,7 @@ module apmu_ibex_decoder #(
     output logic [31:0]           zimm_rs1_type_o,
 
     // register file
-    output ibex_pkg::rf_wd_sel_e rf_wdata_sel_o,   // RF write data selection
+    output apmu_ibex_pkg::rf_wd_sel_e rf_wdata_sel_o,   // RF write data selection
     output logic                 rf_we_o,          // write enable for regfile
     output logic [4:0]           rf_raddr_a_o,
     output logic [4:0]           rf_raddr_b_o,
@@ -65,10 +65,10 @@ module apmu_ibex_decoder #(
     output logic                 rf_ren_b_o,          // Instruction reads from RF addr B
 
     // ALU
-    output ibex_pkg::alu_op_e    alu_operator_o,        // ALU operation selection
-    output ibex_pkg::op_a_sel_e  alu_op_a_mux_sel_o,    // operand a selection: reg value, PC,
+    output apmu_ibex_pkg::alu_op_e    alu_operator_o,        // ALU operation selection
+    output apmu_ibex_pkg::op_a_sel_e  alu_op_a_mux_sel_o,    // operand a selection: reg value, PC,
                                                         // immediate or zero
-    output ibex_pkg::op_b_sel_e  alu_op_b_mux_sel_o,    // operand b selection: reg value or
+    output apmu_ibex_pkg::op_b_sel_e  alu_op_b_mux_sel_o,    // operand b selection: reg value or
                                                         // immediate
     output logic                 alu_multicycle_o,      // ternary bitmanip instruction
 
@@ -78,12 +78,12 @@ module apmu_ibex_decoder #(
     output logic                 mult_sel_o,            // as above but static, for data muxes
     output logic                 div_sel_o,             // as above but static, for data muxes
 
-    output ibex_pkg::md_op_e     multdiv_operator_o,
+    output apmu_ibex_pkg::md_op_e     multdiv_operator_o,
     output logic [1:0]           multdiv_signed_mode_o,
 
     // CSRs
     output logic                 csr_access_o,          // access to CSR
-    output ibex_pkg::csr_op_e    csr_op_o,              // operation to perform on CSR
+    output apmu_ibex_pkg::csr_op_e    csr_op_o,              // operation to perform on CSR
 
     // LSU
     output logic                 data_req_o,            // start transaction to data memory
@@ -95,7 +95,7 @@ module apmu_ibex_decoder #(
 
     // PMU Counter Unit
     output logic                 counter_req_o,         // start transaction to counter memory
-    output ibex_pkg::pmc_op_e    counter_op_o,          // counter operation
+    output apmu_ibex_pkg::pmc_op_e    counter_op_o,          // counter operation
     output logic                 counter_we_o,          // write enable for counter memory
     
     // jump/branches

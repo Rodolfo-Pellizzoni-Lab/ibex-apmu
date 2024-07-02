@@ -61,11 +61,11 @@ module apmu_ibex_if_stage #(
     input  logic                  instr_valid_clear_i,      // clear instr valid bit in IF-ID
     input  logic                  pc_set_i,                 // set the PC to a new value
     input  logic                  pc_set_spec_i,
-    input  ibex_pkg::pc_sel_e     pc_mux_i,                 // selector for PC multiplexer
+    input  apmu_ibex_pkg::pc_sel_e     pc_mux_i,                 // selector for PC multiplexer
     input  logic                  nt_branch_mispredict_i,   // Not-taken branch in ID/EX was
                                                             // mispredicted (predicted taken)
-    input  ibex_pkg::exc_pc_sel_e exc_pc_mux_i,             // selects ISR address
-    input  ibex_pkg::exc_cause_e  exc_cause,                // selects ISR address for
+    input  apmu_ibex_pkg::exc_pc_sel_e exc_pc_mux_i,             // selects ISR address
+    input  apmu_ibex_pkg::exc_cause_e  exc_cause,                // selects ISR address for
                                                             // vectorized interrupt lines
     input logic                   dummy_instr_en_i,
     input logic [2:0]             dummy_instr_mask_i,
@@ -136,7 +136,7 @@ module apmu_ibex_if_stage #(
   logic              predict_branch_taken;
   logic       [31:0] predict_branch_pc;
 
-  ibex_pkg::pc_sel_e pc_mux_internal;
+  apmu_ibex_pkg::pc_sel_e pc_mux_internal;
 
   logic        [7:0] unused_boot_addr;
   logic        [7:0] unused_csr_mtvec;

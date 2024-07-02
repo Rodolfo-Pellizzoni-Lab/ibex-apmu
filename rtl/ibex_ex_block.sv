@@ -9,15 +9,15 @@
  * Execution block: Hosts ALU and MUL/DIV unit
  */
 module apmu_ibex_ex_block #(
-    parameter ibex_pkg::rv32m_e RV32M           = ibex_pkg::RV32MFast,
-    parameter ibex_pkg::rv32b_e RV32B           = ibex_pkg::RV32BNone,
+    parameter apmu_ibex_pkg::rv32m_e RV32M           = apmu_ibex_pkg::RV32MFast,
+    parameter apmu_ibex_pkg::rv32b_e RV32B           = apmu_ibex_pkg::RV32BNone,
     parameter bit               BranchTargetALU = 0
 ) (
     input  logic                  clk_i,
     input  logic                  rst_ni,
 
     // ALU
-    input  ibex_pkg::alu_op_e     alu_operator_i,
+    input  apmu_ibex_pkg::alu_op_e     alu_operator_i,
     input  logic [31:0]           alu_operand_a_i,
     input  logic [31:0]           alu_operand_b_i,
     input  logic                  alu_instr_first_cycle_i,
@@ -28,7 +28,7 @@ module apmu_ibex_ex_block #(
     input  logic [31:0]           bt_b_operand_i,
 
     // Multiplier/Divider
-    input  ibex_pkg::md_op_e      multdiv_operator_i,
+    input  apmu_ibex_pkg::md_op_e      multdiv_operator_i,
     input  logic                  mult_en_i,             // dynamic enable signal, for FSM control
     input  logic                  div_en_i,              // dynamic enable signal, for FSM control
     input  logic                  mult_sel_i,            // static decoder output, for data muxes

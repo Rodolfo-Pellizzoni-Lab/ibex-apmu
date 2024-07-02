@@ -25,8 +25,8 @@ module apmu_ibex_cs_registers #(
     parameter int unsigned      PMPGranularity    = 0,
     parameter int unsigned      PMPNumRegions     = 4,
     parameter bit               RV32E             = 0,
-    parameter ibex_pkg::rv32m_e RV32M             = ibex_pkg::RV32MFast,
-    parameter ibex_pkg::rv32b_e RV32B             = ibex_pkg::RV32BNone
+    parameter apmu_ibex_pkg::rv32m_e RV32M             = apmu_ibex_pkg::RV32MFast,
+    parameter apmu_ibex_pkg::rv32b_e RV32B             = apmu_ibex_pkg::RV32BNone
 ) (
     // Clock and Reset
     input  logic                 clk_i,
@@ -36,9 +36,9 @@ module apmu_ibex_cs_registers #(
     input  logic [31:0]          hart_id_i,
 
     // Privilege mode
-    output ibex_pkg::priv_lvl_e  priv_mode_id_o,
-    output ibex_pkg::priv_lvl_e  priv_mode_if_o,
-    output ibex_pkg::priv_lvl_e  priv_mode_lsu_o,
+    output apmu_ibex_pkg::priv_lvl_e  priv_mode_id_o,
+    output apmu_ibex_pkg::priv_lvl_e  priv_mode_if_o,
+    output apmu_ibex_pkg::priv_lvl_e  priv_mode_lsu_o,
     output logic                 csr_mstatus_tw_o,
 
     // mtvec
@@ -49,9 +49,9 @@ module apmu_ibex_cs_registers #(
 
     // Interface to registers (SRAM like)
     input  logic                 csr_access_i,
-    input  ibex_pkg::csr_num_e   csr_addr_i,
+    input  apmu_ibex_pkg::csr_num_e   csr_addr_i,
     input  logic [31:0]          csr_wdata_i,
-    input  ibex_pkg::csr_op_e    csr_op_i,
+    input  apmu_ibex_pkg::csr_op_e    csr_op_i,
     input                        csr_op_en_i,
     output logic [31:0]          csr_rdata_o,
 
@@ -63,18 +63,18 @@ module apmu_ibex_cs_registers #(
     input  logic [31:0]          irq_x_i,
     input  logic                 nmi_mode_i,
     output logic                 irq_pending_o,          // interrupt request pending
-    output ibex_pkg::irqs_t      irqs_o,                 // interrupt requests qualified with mie
+    output apmu_ibex_pkg::irqs_t      irqs_o,                 // interrupt requests qualified with mie
     output logic [31:0]          irqs_x_o,               // custom interrupt requests qualified with miex
     output logic                 csr_mstatus_mie_o,
     output logic [31:0]          csr_mepc_o,
 
     // PMP
-    output ibex_pkg::pmp_cfg_t   csr_pmp_cfg_o  [PMPNumRegions],
+    output apmu_ibex_pkg::pmp_cfg_t   csr_pmp_cfg_o  [PMPNumRegions],
     output logic [33:0]          csr_pmp_addr_o [PMPNumRegions],
 
     // debug
     input  logic                 debug_mode_i,
-    input  ibex_pkg::dbg_cause_e debug_cause_i,
+    input  apmu_ibex_pkg::dbg_cause_e debug_cause_i,
     input  logic                 debug_csr_save_i,
     output logic [31:0]          csr_depc_o,
     output logic                 debug_single_step_o,
@@ -102,7 +102,7 @@ module apmu_ibex_cs_registers #(
     input  logic                 csr_restore_mret_i,
     input  logic                 csr_restore_dret_i,
     input  logic                 csr_save_cause_i,
-    input  ibex_pkg::exc_cause_e csr_mcause_i,
+    input  apmu_ibex_pkg::exc_cause_e csr_mcause_i,
     input  logic [31:0]          csr_mtval_i,
     output logic                 illegal_csr_insn_o,     // access to non-existent CSR,
                                                          // with wrong priviledge level, or

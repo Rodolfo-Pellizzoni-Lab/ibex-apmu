@@ -18,8 +18,8 @@
 
 module apmu_ibex_id_stage #(
     parameter bit               RV32E           = 0,
-    parameter ibex_pkg::rv32m_e RV32M           = ibex_pkg::RV32MFast,
-    parameter ibex_pkg::rv32b_e RV32B           = ibex_pkg::RV32BNone,
+    parameter apmu_ibex_pkg::rv32m_e RV32M           = apmu_ibex_pkg::RV32MFast,
+    parameter apmu_ibex_pkg::rv32b_e RV32B           = apmu_ibex_pkg::RV32BNone,
     parameter bit               DataIndTiming   = 1'b0,
     parameter bit               BranchTargetALU = 0,
     parameter bit               SpecBranch      = 0,
@@ -52,10 +52,10 @@ module apmu_ibex_id_stage #(
     // IF and ID stage signals
     output logic                      pc_set_o,
     output logic                      pc_set_spec_o,
-    output ibex_pkg::pc_sel_e         pc_mux_o,
+    output apmu_ibex_pkg::pc_sel_e         pc_mux_o,
     output logic                      nt_branch_mispredict_o,
-    output ibex_pkg::exc_pc_sel_e     exc_pc_mux_o,
-    output ibex_pkg::exc_cause_e      exc_cause_o,
+    output apmu_ibex_pkg::exc_pc_sel_e     exc_pc_mux_o,
+    output apmu_ibex_pkg::exc_cause_e      exc_cause_o,
 
     input  logic                      illegal_c_insn_i,
     input  logic                      instr_fetch_err_i,
@@ -71,7 +71,7 @@ module apmu_ibex_id_stage #(
     input  logic                      stall_pmu_i,
 
     // ALU
-    output ibex_pkg::alu_op_e         alu_operator_ex_o,
+    output apmu_ibex_pkg::alu_op_e         alu_operator_ex_o,
     output logic [31:0]               alu_operand_a_ex_o,
     output logic [31:0]               alu_operand_b_ex_o,
 
@@ -89,7 +89,7 @@ module apmu_ibex_id_stage #(
     output logic                      div_en_ex_o,
     output logic                      mult_sel_ex_o,
     output logic                      div_sel_ex_o,
-    output ibex_pkg::md_op_e          multdiv_operator_ex_o,
+    output apmu_ibex_pkg::md_op_e          multdiv_operator_ex_o,
     output logic  [1:0]               multdiv_signed_mode_ex_o,
     output logic [31:0]               multdiv_operand_a_ex_o,
     output logic [31:0]               multdiv_operand_b_ex_o,
@@ -97,7 +97,7 @@ module apmu_ibex_id_stage #(
 
     // CSR
     output logic                      csr_access_o,
-    output ibex_pkg::csr_op_e         csr_op_o,
+    output apmu_ibex_pkg::csr_op_e         csr_op_o,
     output logic                      csr_op_en_o,
     output logic                      csr_save_if_o,
     output logic                      csr_save_id_o,
@@ -106,7 +106,7 @@ module apmu_ibex_id_stage #(
     output logic                      csr_restore_dret_id_o,
     output logic                      csr_save_cause_o,
     output logic [31:0]               csr_mtval_o,
-    input  ibex_pkg::priv_lvl_e       priv_mode_i,
+    input  apmu_ibex_pkg::priv_lvl_e       priv_mode_i,
     input  logic                      csr_mstatus_tw_i,
     input  logic                      illegal_csr_insn_i,
     input  logic                      data_ind_timing_i,
@@ -128,7 +128,7 @@ module apmu_ibex_id_stage #(
 
     // Interface to counter unit
     output  logic                     pmc_req_o,
-    output  ibex_pkg::pmc_op_e        pmc_op_o,
+    output  apmu_ibex_pkg::pmc_op_e        pmc_op_o,
     output  logic                     pmc_we_o,
     
     output  logic [31:0]              pmc_wdata_o,
@@ -136,7 +136,7 @@ module apmu_ibex_id_stage #(
     // Interrupt signals
     input  logic                      csr_mstatus_mie_i,
     input  logic                      irq_pending_i,
-    input  ibex_pkg::irqs_t           irqs_i,
+    input  apmu_ibex_pkg::irqs_t           irqs_i,
     input  logic                      irq_nm_i,
     output logic                      nmi_mode_o,
     input  logic [31:0]               irqs_x_i,
@@ -148,7 +148,7 @@ module apmu_ibex_id_stage #(
 
     // Debug Signal
     output logic                      debug_mode_o,
-    output ibex_pkg::dbg_cause_e      debug_cause_o,
+    output apmu_ibex_pkg::dbg_cause_e      debug_cause_o,
     output logic                      debug_csr_save_o,
     input  logic                      debug_req_i,
     input  logic                      debug_single_step_i,
@@ -181,7 +181,7 @@ module apmu_ibex_id_stage #(
     input  logic                      rf_write_wb_i,
 
     output  logic                     en_wb_o,
-    output  ibex_pkg::wb_instr_type_e instr_type_wb_o,
+    output  apmu_ibex_pkg::wb_instr_type_e instr_type_wb_o,
     output  logic                     instr_perf_count_id_o,
     input logic                       ready_wb_i,
     input logic                       outstanding_load_wb_i,
