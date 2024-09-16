@@ -1,3 +1,7 @@
+## Description
+1. The **alsaqr-dev** branch contains the RTL code needed for the APMU.
+2. The **master** branch has been untouched since [u/Arshaan256](https://github.com/Arshaan-256) forked the repository for APMU development.
+
 [Ibex OpenTitan configuration Nightly Regression](https://ibex.reports.lowrisc.org/opentitan/latest/report.html)
 <a href="https://ibex.reports.lowrisc.org/opentitan/latest/report.html">
   <img src="https://ibex.reports.lowrisc.org/opentitan/latest/summary.svg">
