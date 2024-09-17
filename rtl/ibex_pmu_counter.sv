@@ -38,7 +38,7 @@ module apmu_ibex_pmu_counter (
     
     // Is the current data request a read or write?
     // Needed when the PMU responds in the next clock cycle
-    always_ff @(posedge clk_i) begin
+    always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
             counter_we_q <= 1'b0;
         end else if (ctrl_update) begin
@@ -96,7 +96,7 @@ module apmu_ibex_pmu_counter (
     end
 
 
-    always_ff @(posedge clk_i) begin
+    always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
             pmc_fsm_cs <= FSM_IDLE;
         end else begin
